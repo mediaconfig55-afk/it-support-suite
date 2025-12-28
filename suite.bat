@@ -16,7 +16,7 @@ title IT Support Suite v14.1 - Full Edition
 color 0B
 
 :: --- AYARLAR ---
-SET "VERSION=14.0"
+SET "VERSION=14.1"
 :: Kendi linkini buraya tırnak içinde yapıştır
 SET "https://raw.githubusercontent.com/mediaconfig55-afk/it-support-suite/refs/heads/main/suite.bat"
 
