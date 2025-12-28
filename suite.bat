@@ -6,35 +6,38 @@ cd /d "%~dp0"
 :: --- YÖNETİCİ KONTROLÜ ---
 net session >nul 2>&1
 if %errorLevel% neq 0 (
-    echo [!] adam ol  fjkbptcokguhljloşıupylghjkpoışulfvoujkbjlbjlklblnkbnlvıhoşjnjl   LÜTFEN YÖNETİCİ OLARAK ÇALIŞTIRIN.
+    echo [!] LUTFEN YONETICI OLARAK CALISTIRIN.
     pause & exit
 )
 
-:: --- PENCERE AYARLARI ---
-mode con: cols=115 lines=48
-title IT Support Suite v14.6 - Full Edition
-color 0B
-
 :: --- AYARLAR ---
-SET "VERSION=14.6"
-:: Kendi linkini buraya tırnak içinde yapıştır
-SET "RAW_LINK=https://raw.githubusercontent.com/KullaniciAdin/it-suite/main/suite.bat?v=%random%"
+SET "VERSION=15.1"
+:: ÖNEMLİ: Linkin sonuna eklenen %RANDOM% önbelleği (cache) her seferinde kırar!
+SET "RAW_LINK=SENIN_GITHUB_RAW_LINKIN?v=%RANDOM%"
 
-:: --- AKILLI GÜNCELLEME SİSTEMİ ---
-SET "CURRENT_VERSION=14.0"
-powershell -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; $c = New-Object Net.WebClient; $c.DownloadFile('%RAW_LINK%', '%temp%\up.bat')" >nul 2>&1
+:: --- PROFESYONEL GÜNCELLEME SİSTEMİ ---
+echo [+] Guncellemeler kontrol ediliyor... (v%VERSION%)
+powershell -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; (New-Object Net.WebClient).DownloadFile('%RAW_LINK%', '%temp%\up.bat')" >nul 2>&1
 
 if exist "%temp%\up.bat" (
-    :: İndirilen dosyanın içindeki sürümü kontrol et
-    findstr /C:"SET \"VERSION=14.7\"" "%temp%\up.bat" >nul
-    if %errorLevel% equ 0 (
-        echo [+] Yeni sürüm bulundu, yükleniyor...
+    :: Mevcut dosya ile inen dosyayı karşılaştır (FC = File Compare)
+    fc /b "%~f0" "%temp%\up.bat" >nul
+    if %errorLevel% neq 0 (
+        echo.
+        echo  [+] YENI SURUM VEYA DEGISIKLIK BULUNDU!
+        echo  [+] Sistem guncelleniyor...
         move /y "%temp%\up.bat" "%~f0" >nul
+        timeout /t 2 >nul
         start "" "%~f0"
         exit
     )
     del "%temp%\up.bat" >nul 2>&1
 )
+
+:: --- PENCERE AYARLARI ---
+mode con: cols=115 lines=48
+title IT Support Suite v%VERSION% - Code Emre Bilgin
+color 0B
 
 :MENU
 cls
@@ -66,6 +69,9 @@ echo    [35] CIKIS (EXIT)
 echo  ==========================================================================================================
 echo.
 set /p choice=" >> Seciminiz: "
+
+:: (Buradan aşağısı v14 ile aynı, yönlendirmeler ve fonksiyonlar gelecek...)
+:: NOT: Kodu çok uzatmamak için yönlendirmeleri kopyalamadım, v14'tekileri buraya ekle.
 
 :: --- YÖNLENDİRMELER (EKSİKSİZ LİSTE) ---
 if "%choice%"=="1" goto LIST
