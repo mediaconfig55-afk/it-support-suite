@@ -6,17 +6,17 @@ cd /d "%~dp0"
 :: --- YÖNETİCİ KONTROLÜ ---
 net session >nul 2>&1
 if %errorLevel% neq 0 (
-    echo [!] adam ol  fjkbptcokguhljloşıupylghjkpoışulfvoulvıhoşjnjl   LÜTFEN YÖNETİCİ OLARAK ÇALIŞTIRIN.
+    echo [!] adam ol  fjkbptcokguhljloşıupylghjkpoışulfvoujkbjlbjlklblnkbnlvıhoşjnjl   LÜTFEN YÖNETİCİ OLARAK ÇALIŞTIRIN.
     pause & exit
 )
 
 :: --- PENCERE AYARLARI ---
 mode con: cols=115 lines=48
-title IT Support Suite v14.5 - Full Edition
+title IT Support Suite v14.6 - Full Edition
 color 0B
 
 :: --- AYARLAR ---
-SET "VERSION=14.5"
+SET "VERSION=14.6"
 :: Kendi linkini buraya tırnak içinde yapıştır
 SET "RAW_LINK=https://raw.githubusercontent.com/KullaniciAdin/it-suite/main/suite.bat?v=%random%"
 
@@ -26,7 +26,7 @@ powershell -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.Security
 
 if exist "%temp%\up.bat" (
     :: İndirilen dosyanın içindeki sürümü kontrol et
-    findstr /C:"SET \"VERSION=14.1\"" "%temp%\up.bat" >nul
+    findstr /C:"SET \"VERSION=14.7\"" "%temp%\up.bat" >nul
     if %errorLevel% equ 0 (
         echo [+] Yeni sürüm bulundu, yükleniyor...
         move /y "%temp%\up.bat" "%~f0" >nul
