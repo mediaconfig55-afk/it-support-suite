@@ -6,7 +6,7 @@ cd /d "%~dp0"
 :: --- YÖNETİCİ KONTROLÜ ---
 net session >nul 2>&1
 if %errorLevel% neq 0 (
-    echo [!] LÜTFEN YÖNETİCİ OLARAK ÇALIŞTIRIN.
+    echo [!] adam ol LÜTFEN YÖNETİCİ OLARAK ÇALIŞTIRIN.
     pause & exit
 )
 
@@ -16,7 +16,7 @@ title IT Support Suite v14.1 - Full Edition
 color 0B
 
 :: --- AYARLAR ---
-SET "VERSION=14.1"
+SET "VERSION=14.2"
 :: Kendi linkini buraya tırnak içinde yapıştır
 SET "https://raw.githubusercontent.com/mediaconfig55-afk/it-support-suite/refs/heads/main/suite.bat"
 
