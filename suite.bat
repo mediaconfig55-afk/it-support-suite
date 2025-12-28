@@ -12,8 +12,8 @@ if %errorLevel% neq 0 (
 
 :: --- PENCERE AYARLARI ---
 mode con: cols=115 lines=48
-title IT Support Suite v14.0 - Full Edition
-color 0A
+title IT Support Suite v14.1 - Full Edition
+color 0B
 
 :: --- AYARLAR ---
 SET "VERSION=14.0"
