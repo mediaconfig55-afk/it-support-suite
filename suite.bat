@@ -20,11 +20,15 @@ SET "VERSION=14.5"
 :: Kendi linkini buraya tırnak içinde yapıştır
 SET "https://raw.githubusercontent.com/mediaconfig55-afk/it-support-suite/refs/heads/main/suite.bat"
 
-:: --- SESSİZ GÜNCELLEME SİSTEMİ ---
+:: --- AKILLI GÜNCELLEME SİSTEMİ ---
+SET "CURRENT_VERSION=14.0"
 powershell -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; $c = New-Object Net.WebClient; $c.DownloadFile('%RAW_LINK%', '%temp%\up.bat')" >nul 2>&1
+
 if exist "%temp%\up.bat" (
-    fc /b "%~f0" "%temp%\up.bat" >nul
-    if %errorLevel% neq 0 (
+    :: İndirilen dosyanın içindeki sürümü kontrol et
+    findstr /C:"SET \"VERSION=14.1\"" "%temp%\up.bat" >nul
+    if %errorLevel% equ 0 (
+        echo [+] Yeni sürüm bulundu, yükleniyor...
         move /y "%temp%\up.bat" "%~f0" >nul
         start "" "%~f0"
         exit
