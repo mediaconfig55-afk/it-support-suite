@@ -18,7 +18,7 @@ color 0B
 :: --- AYARLAR ---
 SET "VERSION=14.5"
 :: Kendi linkini buraya tırnak içinde yapıştır
-SET "https://raw.githubusercontent.com/mediaconfig55-afk/it-support-suite/refs/heads/main/suite.bat"
+SET "RAW_LINK=https://raw.githubusercontent.com/KullaniciAdin/it-suite/main/suite.bat?v=%random%"
 
 :: --- AKILLI GÜNCELLEME SİSTEMİ ---
 SET "CURRENT_VERSION=14.0"
