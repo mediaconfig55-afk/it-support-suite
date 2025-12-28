@@ -13,7 +13,7 @@ if %errorLevel% neq 0 (
 :: --- AYARLAR ---
 SET "VERSION=15.1"
 :: ÖNEMLİ: Linkin sonuna eklenen %RANDOM% önbelleği (cache) her seferinde kırar!
-SET "RAW_LINK=https://raw.githubusercontent.com/mediaconfig55-afk/it-support-suite/refs/heads/main/suite.bat
+SET "RAW_LINK=https://raw.githubusercontent.com/mediaconfig55-afk/it-support-suite/refs/heads/main/suite.bat"
 
 :: --- PROFESYONEL GÜNCELLEME SİSTEMİ ---
 echo [+] Guncellemeler kontrol ediliyor... (v%VERSION%)
