@@ -1,33 +1,29 @@
 @echo off
-:: Karakter seti ayarı (Türkçe karakterler için en güvenlisi)
-chcp 65001 >nul
 setlocal enabledelayedexpansion
+chcp 65001 >nul
 cd /d "%~dp0"
 
-:: 1. ADIM: YÖNETİCİ KONTROLÜ
+:: --- YÖNETİCİ KONTROLÜ ---
 net session >nul 2>&1
 if %errorLevel% neq 0 (
-    echo [!] LÜTFEN SAĞ TIKLAYIP YÖNETİCİ OLARAK ÇALIŞTIRIN!
+    echo [!] LUTFEN SAG TIKLAYIP YONETICI OLARAK CALISTIRIN.
     pause & exit
 )
 
-:: 2. ADIM: PENCERE BOYUTUNU ZORLA SABİTLE (Kaymaları önlemek için daraltıldı)
-mode con: cols=90 lines=45
+:: --- PENCERE AYARI ---
+mode con: cols=100 lines=45
+title Professional IT Suite v9.7 - Final Visual
 
 :: --- AYARLAR ---
 SET "https://raw.githubusercontent.com/mediaconfig55-afk/it-support-suite/refs/heads/main/suite.bat"
-SET "VERSION=9.6"
-title IT Support Suite v%VERSION% - Code Emre Bilgin
-color 0A
+SET "VERSION=9.7"
 
-:: --- GÜNCELLEME KONTROLÜ ---
-echo [+] Sistem Kontrol Ediliyor... v%VERSION%
-powershell -Command "(New-Object Net.WebClient).DownloadFile('%RAW_LINK%', '%temp%\update.bat')" >nul 2>&1
-if exist "%temp%\update.bat" (
-    fc /b "%~f0" "%temp%\update.bat" >nul
+:: --- OTOMATİK GÜNCELLEME ---
+powershell -Command "(New-Object Net.WebClient).DownloadFile('%RAW_LINK%', '%temp%\up.bat')" >nul 2>&1
+if exist "%temp%\up.bat" (
+    fc /b "%~f0" "%temp%\up.bat" >nul
     if %errorLevel% neq 0 (
-        move /y "%temp%\update.bat" "%~f0" >nul
-        echo [+] Yeni Versiyon Yuklendi!
+        move /y "%temp%\up.bat" "%~f0" >nul
         start "" "%~f0"
         exit
     )
@@ -35,81 +31,66 @@ if exist "%temp%\update.bat" (
 
 :MENU
 cls
-echo  --------------------------------------------------------------------------
-echo    USB YONETIM VE SISTEM BAKIM KONSOLU - v%VERSION%
-echo    Gelistirici: Emre Bilgin ^| Durum: Guncel
-echo  --------------------------------------------------------------------------
 echo.
-echo    [ DISK ISLEMLERI ]                  [ SISTEM ONARIM ]
-echo    1. Diskleri Listele                 16. Sistem Dosyasi Onar (SFC)
-echo    2. Akilli Format                    17. Disk Hata Tarama (CHKDSK)
-echo    3. Yazma Korumasi AC                18. Disk Temizligi (Cleanmgr)
-echo    4. Yazma Korumasi KAPAT             19. Grup Politikasi Guncelle
-echo    5. Disk Detaylarini Gor             24. RAM Optimizasyonu
+echo  ##############################################################################################
+echo  #                       USB YONETIM VE SISTEM BAKIM KONSOLU (v%VERSION%)                      #
+echo  #                                 ==== EMRE BILGIN ====                                      #
+echo  ##############################################################################################
 echo.
-echo    [ SISTEM BILGILERI ]                [ AG VE INTERNET ]
-echo    6. Seri No / Marka / Model          7.  IP Adresini Gor
-echo    8. Windows Lisans Durumu            26. DNS Onbellegini Sil
-echo    9. Detayli Sistem Ozeti             34. WI-FI SIFRELERINI GOSTER
-echo    10. İşlemci (CPU) Bilgisi           27. IP Yenile (Renew)
+echo    [1]  Diskleri Listele             [16] Sistem Onar (SFC)        [37] Surucu Yedekle
+echo    [2]  Akilli Format                [17] Disk Tara (CHKDSK)       [38] Nihai Performans
+echo    [7]  IP Adresini Gor              [24] RAM Optimizasyonu        [41] Explorer Onar
+echo    [34] WiFi Sifrelerini Gor         [23] Temp Temizle             [35] CIKIS (EXIT)
 echo.
-echo    [ EKSTRA ARACLAR ]                  [ SISTEM KONTROL ]
-echo    36. Update Servis Sifirla           41. Explorer / Gorev Cubugu Onar
-echo    37. Surucu (Driver) Yedekle         43. Laptop Pil Saglik Raporu
-echo    38. Nihai Performans Modu           44. Telemetriyi Kapat
-echo    40. Yazici Kuyrugu Temizle          35. CIKIS (EXIT)
+echo  ##############################################################################################
 echo.
-echo  --------------------------------------------------------------------------
-set /p choice=" >> Secim Yapin ve Enter'a Basin: "
+set /p choice=" >> Seciminizi yapip Enter'a basin: "
 
-:: --- YÖNLENDİRMELER ---
 if "%choice%"=="1" goto LIST
-if "%choice%"=="2" goto FORMAT_SELECTION
+if "%choice%"=="2" goto FORMAT
 if "%choice%"=="7" goto IP
 if "%choice%"=="24" goto RAM
 if "%choice%"=="34" goto WIFI
 if "%choice%"=="41" goto EXPLORER
 if "%choice%"=="35" exit
+goto MENU
 
-:: --- FONKSIYONLAR ---
 :IP
 cls
-echo [+] IP Adresleriniz:
-ipconfig | findstr /i "IPv4"
-if %errorlevel% neq 0 ipconfig | findstr /i "IP Address"
+echo [+] Yerel IP Bilgileri:
+ipconfig | findstr /i "IPv4 IP"
 pause & goto MENU
 
 :RAM
 cls
 echo [+] RAM Temizleniyor...
 start /wait rundll32.exe advapi32.dll,ProcessIdleTasks
-echo FreeMem = Space(128000000) > "%temp%\r.vbs"
+echo FreeMem = Space(100000000) > "%temp%\r.vbs"
 cscript //nologo "%temp%\r.vbs" & del "%temp%\r.vbs"
-echo [OK] Islem tamam.
+echo [OK] Bellek rahatlatildi.
 pause & goto MENU
 
 :WIFI
 cls
 set /p w="Ag Adi (SSID): "
 netsh wlan show profile name="%w%" key=clear | findstr /i "Key Content"
-if %errorlevel% neq 0 echo [!] Sifre bulunamadi.
 pause & goto MENU
-
-:EXPLORER
-taskkill /f /im explorer.exe >nul 2>&1
-start explorer.exe
-goto MENU
 
 :LIST
 cls
 echo list disk > ds.txt & diskpart /s ds.txt & del ds.txt
 pause & goto MENU
 
-:FORMAT_SELECTION
+:EXPLORER
+taskkill /f /im explorer.exe & start explorer.exe
+goto MENU
+
+:FORMAT
 cls
 echo list disk > ds.txt & diskpart /s ds.txt & del ds.txt
 set /p d="Disk No: "
-set /p c="Emin misiniz? (E/H): "
+echo [!] DIKKAT: Veriler silinecek.
+set /p c="Onayliyor musunuz? (E/H): "
 if /i "%c%"=="E" (
     (echo select disk %d% & echo clean & echo create partition primary & echo format fs=ntfs quick & echo assign) > ds.txt
     diskpart /s ds.txt & del ds.txt
