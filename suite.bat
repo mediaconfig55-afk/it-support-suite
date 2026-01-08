@@ -634,7 +634,6 @@ if "%sonSecim%"=="1" (
     goto MENU
 )
 
-:: --- DIGER FONKSIYONLAR (ORIJINAL KALACAK) ---
 :LIST_DISK
 cls
 call :HEADER_SUB "Diskleri Listele"
@@ -643,4 +642,366 @@ diskpart /s "%TEMP%\ds.txt"
 del "%TEMP%\ds.txt"
 call :FOOTER_SUB "LIST_DISK"
 
-:: ... (diğer tüm fonksiyonlar orijinal halleriyle aynı kalacak)
+:SMART_FORMAT
+cls
+call :HEADER_SUB "Akilli Format"
+(echo list disk) > "%TEMP%\ds.txt"
+diskpart /s "%TEMP%\ds.txt"
+del "%TEMP%\ds.txt"
+set /p d_id="   >> Disk Numarasi: "
+echo   [1] NTFS  [2] FAT32  [3] exFAT
+set /p fs_c="   >> Secim: "
+if "%fs_c%"=="1" set "fs=ntfs"
+if "%fs_c%"=="2" set "fs=fat32"
+if "%fs_c%"=="3" set "fs=exfat"
+(echo select disk %d_id% & echo clean & echo create partition primary & echo format fs=%fs% quick & echo assign) > "%TEMP%\ds.txt"
+diskpart /s "%TEMP%\ds.txt"
+del "%TEMP%\ds.txt"
+call :FOOTER_SUB "FORMAT"
+
+:PROTECT_DISK
+cls
+set /p d_id="   >> Disk No: "
+(echo select disk %d_id% & echo attributes disk set readonly) > "%TEMP%\ds.txt"
+diskpart /s "%TEMP%\ds.txt"
+del "%TEMP%\ds.txt"
+call :FOOTER_SUB "WRITE_PROTECT_ON"
+
+:UNPROTECT_DISK
+cls
+set /p d_id="   >> Disk No: "
+(echo select disk %d_id% & echo attributes disk clear readonly) > "%TEMP%\ds.txt"
+diskpart /s "%TEMP%\ds.txt"
+del "%TEMP%\ds.txt"
+call :FOOTER_SUB "WRITE_PROTECT_OFF"
+
+:DETAIL_DISK
+cls
+set /p d_id="   >> Disk No: "
+(echo select disk %d_id% & echo detail disk) > "%TEMP%\ds.txt"
+diskpart /s "%TEMP%\ds.txt"
+del "%TEMP%\ds.txt"
+call :FOOTER_SUB "DISK_DETAIL"
+
+:CONVERT_NTFS
+cls
+set /p vol="   >> Harf (E gibi): "
+convert %vol%: /fs:ntfs
+call :FOOTER_SUB "CONVERT_NTFS"
+
+:CLEAN_USB_REG
+cls
+call :HEADER_SUB "USB Gecmisini Sil"
+reg delete "HKLM\SYSTEM\CurrentControlSet\Enum\USBSTOR" /f >nul 2>&1
+reg delete "HKLM\SYSTEM\CurrentControlSet\Enum\USB" /f >nul 2>&1
+call :FOOTER_SUB "USB_REG_CLEAN"
+
+:INFO_BASIC
+cls
+wmic bios get serialnumber
+wmic computersystem get manufacturer, model
+call :FOOTER_SUB "INFO_BASIC"
+
+:INFO_IP
+cls
+ipconfig | findstr "IPv4"
+call :FOOTER_SUB "INFO_IP"
+
+:INFO_LICENSE
+cls
+slmgr /xpr
+call :FOOTER_SUB "INFO_LICENSE"
+
+:INFO_FULL
+cls
+systeminfo
+call :FOOTER_SUB "INFO_FULL"
+
+:INFO_CPU
+cls
+wmic cpu get name
+call :FOOTER_SUB "INFO_CPU"
+
+:INFO_RAM
+cls
+wmic memorychip get capacity, speed, manufacturer
+call :FOOTER_SUB "INFO_RAM"
+
+:INFO_BIOS
+cls
+wmic baseboard get product, manufacturer
+call :FOOTER_SUB "INFO_BIOS"
+
+:INFO_GPU
+cls
+wmic path win32_VideoController get name
+call :FOOTER_SUB "INFO_GPU"
+
+:INFO_AUDIO
+cls
+wmic sounddev get caption
+call :FOOTER_SUB "INFO_AUDIO"
+
+:REPORT_BATTERY
+cls
+powercfg /batteryreport /output "%USERPROFILE%\Desktop\Pil_Raporu.html"
+echo [OK] Masaustune 'Pil_Raporu.html' olusturuldu.
+call :FOOTER_SUB "BATTERY_REPORT"
+
+:INFO_FORMATDATE
+cls
+wmic os get installdate
+call :FOOTER_SUB "INFO_FORMAT_DATE"
+
+:INFO_STARTUP
+cls
+wmic startup get caption
+call :FOOTER_SUB "INFO_STARTUP"
+
+:INFO_USERS
+cls
+net user
+call :FOOTER_SUB "INFO_USERS"
+
+:INFO_STORAGE
+cls
+wmic logicaldisk get caption, size, freespace
+call :FOOTER_SUB "INFO_STORAGE"
+
+:INFO_BIOS_DETAIL
+cls
+call :HEADER_SUB "BIOS DETAYLARI"
+wmic bios get manufacturer, smbiosbiosversion, releasedate, serialnumber
+call :FOOTER_SUB "BIOS_DETAIL"
+
+:REPAIR_SFC
+cls
+sfc /scannow
+call :FOOTER_SUB "REPAIR_SFC"
+
+:REPAIR_CHKDSK
+cls
+set /p drv="   >> Disk Harfi: "
+chkdsk %drv%: /f /r /x
+call :FOOTER_SUB "REPAIR_CHKDSK"
+
+:DISM_CHECK
+cls
+dism /online /cleanup-image /checkhealth
+call :FOOTER_SUB "DISM_CHECK"
+
+:DISM_SCAN
+cls
+dism /online /cleanup-image /scanhealth
+call :FOOTER_SUB "DISM_SCAN"
+
+:DISM_RESTORE
+cls
+dism /online /cleanup-image /restorehealth
+call :FOOTER_SUB "DISM_RESTORE"
+
+:RESET_UPDATE
+cls
+net stop wuauserv & net stop bits
+ren C:\Windows\SoftwareDistribution SoftwareDistribution.bak >nul 2>&1
+net start wuauserv & net start bits
+call :FOOTER_SUB "RESET_UPDATE"
+
+:BACKUP_DRIVERS
+cls
+mkdir "%USERPROFILE%\Desktop\UT_Drivers" >nul 2>&1
+dism /online /export-driver /destination:"%USERPROFILE%\Desktop\UT_Drivers"
+call :FOOTER_SUB "BACKUP_DRIVERS"
+
+:CLEAR_SPOOLER
+cls
+net stop spooler & del /Q /F /S "%systemroot%\System32\Spool\Printers\*.*" & net start spooler
+call :FOOTER_SUB "CLEAR_SPOOLER"
+
+:RESET_ICON_CACHE
+cls
+taskkill /f /im explorer.exe & del /A %localappdata%\IconCache.db & start explorer.exe
+call :FOOTER_SUB "RESET_ICON"
+
+:CLEAN_TEMP
+cls
+del /s /f /q %temp%\*.* >nul 2>&1
+del /s /f /q C:\Windows\Temp\*.* >nul 2>&1
+call :FOOTER_SUB "CLEAN_TEMP"
+
+:OPTIMIZE_RAM
+cls
+ipconfig /flushdns & echo off | clip
+call :FOOTER_SUB "OPTIMIZE_RAM"
+
+:DEL_WIN_OLD
+cls
+rd /s /q C:\Windows.old
+call :FOOTER_SUB "DEL_WIN_OLD"
+
+:CLEAR_EVENTLOGS
+cls
+for /F "tokens=*" %%G in ('wevtutil.exe el') do (wevtutil.exe cl "%%G")
+call :FOOTER_SUB "CLEAR_LOGS"
+
+:UPDATE_WINGET
+cls
+winget upgrade --all
+call :FOOTER_SUB "UPDATE_WINGET"
+
+:RESET_HOSTS
+cls
+echo 127.0.0.1 localhost > %systemroot%\system32\drivers\etc\hosts
+call :FOOTER_SUB "RESET_HOSTS"
+
+:DISABLE_TELEMETRY
+cls
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" /v AllowTelemetry /t REG_DWORD /d 0 /f
+call :FOOTER_SUB "DISABLE_TELEMETRY"
+
+:ULTRA_PERFORMANCE
+cls
+powercfg -duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61
+call :FOOTER_SUB "ULTRA_PERF"
+
+:UPTIME
+cls
+net stats srv | find "since"
+call :FOOTER_SUB "UPTIME"
+
+:NET_WIFI_PASS
+cls
+netsh wlan show profiles
+set /p wifi="   >> Wi-Fi Adi: "
+netsh wlan show profile name="%wifi%" key=clear
+call :FOOTER_SUB "WIFI_PASS"
+
+:NET_RESET_STACK
+cls
+netsh int ip reset & netsh winsock reset
+call :FOOTER_SUB "NET_RESET"
+
+:FIND_BAD_DRIVERS
+cls
+driverquery /si | findstr /v "Yes"
+call :FOOTER_SUB "BAD_DRIVERS"
+
+:PORT_LISTENER
+cls
+netstat -ano | findstr "LISTENING"
+call :FOOTER_SUB "PORT_LIST"
+
+:FIND_BIG_FILES
+cls
+echo   Lutfen bekleyin, C: surucusu taraniyor...
+forfiles /p C:\ /s /m *.* /c "cmd /c if @fsize geq 1073741824 echo @path @fsize" 2>nul
+call :FOOTER_SUB "BIG_FILES"
+
+:DISK_SMART
+cls
+wmic diskdrive get model, status
+call :FOOTER_SUB "DISK_SMART"
+
+:CLEAN_BROWSER_CACHE
+cls
+taskkill /f /im chrome.exe >nul 2>&1
+taskkill /f /im msedge.exe >nul 2>&1
+del /q /s /f "%LocalAppData%\Google\Chrome\User Data\Default\Cache\*.*" >nul 2>&1
+del /q /s /f "%LocalAppData%\Microsoft\Edge\User Data\Default\Cache\*.*" >nul 2>&1
+call :FOOTER_SUB "BROWSER_CLEAN"
+
+:CREATE_GODMODE
+cls
+mkdir "%USERPROFILE%\Desktop\GodMode.{ED7BA470-8E54-465E-825C-99712043E01C}" 2>nul
+call :FOOTER_SUB "GODMODE"
+
+:ENABLE_OLD_PHOTO
+cls
+reg add "HKCR\Applications\vpshv.dll\shell\open\command" /ve /t REG_EXPAND_SZ /d "%%SystemRoot%%\System32\rundll32.exe \"%%ProgramFiles%%\Windows Photo Viewer\PhotoViewer.dll\", ImageView_Fullscreen %%1" /f
+assoc .jpg=PhotoViewer.FileAssoc.Tiff
+assoc .jpeg=PhotoViewer.FileAssoc.Tiff
+assoc .png=PhotoViewer.FileAssoc.Tiff
+call :FOOTER_SUB "OLD_PHOTO"
+
+:KILL_NOT_RESPONDING
+cls
+taskkill /f /fi "status eq not responding"
+call :FOOTER_SUB "KILL_PROCESS"
+
+:RESET_FIREWALL
+cls
+netsh advfirewall reset
+call :FOOTER_SUB "FIREWALL_RESET"
+
+:HOSTS_BACKUP
+cls
+copy %systemroot%\system32\drivers\etc\hosts "%USERPROFILE%\Desktop\hosts_yedek.txt"
+call :FOOTER_SUB "HOSTS_BACKUP"
+
+:RESET_POWER_PLANS
+cls
+powercfg -restoredefaultschemes
+call :FOOTER_SUB "POWER_RESET"
+
+:: --- KISA YOLLAR VE DIREKT ARACLAR ---
+:CHANGE_LETTER
+:OPEN_DISKMGMT
+start diskmgmt.msc & goto MENU
+:RESTART_EXPLORER
+taskkill /f /im explorer.exe & start explorer.exe & goto MENU
+:DISK_CLEANUP_TOOL
+start cleanmgr & goto MENU
+:CLEAR_CLIPBOARD
+echo off | clip & goto MENU
+:UPDATE_STORE
+start ms-windows-store:updates & goto MENU
+:DISABLE_HIBERNATE
+powercfg -h off & goto MENU
+:TOGGLE_EXT
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v HideFileExt /t REG_DWORD /d 0 /f & taskkill /f /im explorer.exe & start explorer.exe & goto MENU
+:TOGGLE_HIDDEN
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Hidden /t REG_DWORD /d 1 /f & taskkill /f /im explorer.exe & start explorer.exe & goto MENU
+:NET_FLUSHDNS
+ipconfig /flushdns & goto MENU
+:NET_IP_RENEW
+ipconfig /release & ipconfig /renew & goto MENU
+:NET_PING
+ping 8.8.8.8 & pause & goto MENU
+:NET_TRACERT
+set /p site="   >> Hedef: " & tracert %site% & pause & goto MENU
+:NET_NETSTAT
+netstat -an & pause & goto MENU
+:NET_MAC
+getmac & pause & goto MENU
+:NET_ARP
+arp -a & pause & goto MENU
+:NET_CHECK_CONN
+ping www.google.com -n 1 & pause & goto MENU
+:TOOL_DEV
+start devmgmt.msc & goto MENU
+:TOOL_CONTROL
+start control & goto MENU
+:TOOL_TASK
+start taskmgr & goto MENU
+:TOOL_SERVICE
+start services.msc & goto MENU
+:TOOL_REG
+start regedit & goto MENU
+:TOOL_MSCONFIG
+start msconfig & goto MENU
+:TOOL_DXDIAG
+start dxdiag & goto MENU
+:TOOL_OSK
+start osk & goto MENU
+:SEC_ADMIN_ON
+net user administrator /active:yes & call :FOOTER_SUB "ADMIN_ON"
+:SEC_ADMIN_OFF
+net user administrator /active:no & call :FOOTER_SUB "ADMIN_OFF"
+:SEC_FIREWALL
+start firewall.cpl & goto MENU
+:SEC_LOCK
+rundll32.exe user32.dll,LockWorkStation & goto MENU
+:POWER_SHUTDOWN_TIMER
+shutdown -s -t 3600 & goto MENU
+:POWER_ABORT
+shutdown -a & call :FOOTER_SUB "SHUTDOWN_ABORT"
