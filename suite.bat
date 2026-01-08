@@ -22,7 +22,7 @@ if %errorLevel% neq 0 (
 
 :: --- PENCERE AYARLARI ---
 color 0B
-title USB TOOLS - ULTIMATE FINAL EDITION v9.6
+title USB TOOLS - ULTIMATE FINAL EDITION v9.8
 mode con: cols=155 lines=80
 
 :MENU
