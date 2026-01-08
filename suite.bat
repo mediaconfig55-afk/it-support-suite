@@ -18,11 +18,11 @@ if %errorLevel% neq 0 (
 )
 
 :: --- LOG SİSTEMİ ---
-echo [%date% %time%] --- v112 FINAL SISTEM BASLATILDI --- >> "%logFile%" 2>nul
+echo [%date% %time%] --- v11 FINAL SISTEM BASLATILDI --- >> "%logFile%" 2>nul
 
 :: --- PENCERE AYARLARI ---
 color 0B
-title USB TOOLS - ULTIMATE FINAL EDITION v112
+title USB TOOLS - ULTIMATE FINAL EDITION v11
 mode con: cols=155 lines=80
 
 :: --- FONKSİYON TANIMLARI ---
@@ -32,7 +32,7 @@ echo    ┌───────────────────────
 echo    │ ISLEM: %~1
 echo    └────────────────────────────────────────────────────────┘
 echo.
-goto :eof
+exit /b
 
 :FOOTER_SUB
 echo [%date% %time%] Islem Tamamlandi: %~1 >> "%logFile%" 2>nul
@@ -58,7 +58,7 @@ if defined totalRAM if defined freeRAM (
     set "usedRAM=0"
     set "totalRAM_GB=0"
 )
-goto :eof
+exit /b
 
 :MENU
 cls
@@ -124,7 +124,7 @@ set /p "choice=   ╔══»═[ SECIMINIZI YAPIN (0-99) ]═══> "
 echo [%date% %time%] Kullanici Secimi: %choice% >> "%logFile%" 2>nul
 
 :: --- YÖNLENDİRME (IF) BLOKLARI ---
-if "%choice%"=="00" goto :EOF
+if "%choice%"=="00" exit /b 0
 if "%choice%"=="01" goto LIST_DISK
 if "%choice%"=="02" goto SMART_FORMAT
 if "%choice%"=="03" goto PROTECT_DISK
@@ -837,6 +837,7 @@ powercfg -h off >nul 2>&1
 goto MENU
 
 :TOGGLE_EXT
+setlocal enabledelayedexpansion
 reg query "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v HideFileExt >nul 2>&1
 if %errorlevel% equ 0 (
     for /f "tokens=3" %%a in ('reg query "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v HideFileExt') do set "current=%%a"
@@ -845,9 +846,11 @@ if %errorlevel% equ 0 (
     taskkill /f /im explorer.exe >nul 2>&1
     start explorer.exe >nul 2>&1
 )
+endlocal
 goto MENU
 
 :TOGGLE_HIDDEN
+setlocal enabledelayedexpansion
 reg query "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Hidden >nul 2>&1
 if %errorlevel% equ 0 (
     for /f "tokens=3" %%a in ('reg query "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Hidden') do set "current=%%a"
@@ -856,6 +859,7 @@ if %errorlevel% equ 0 (
     taskkill /f /im explorer.exe >nul 2>&1
     start explorer.exe >nul 2>&1
 )
+endlocal
 goto MENU
 
 :NET_FLUSHDNS
@@ -962,3 +966,6 @@ goto MENU
 shutdown -a
 echo Kapatma islemi iptal edildi.
 call :FOOTER_SUB "SHUTDOWN_ABORT"
+
+:EOF
+exit /b 0
