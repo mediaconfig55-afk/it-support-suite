@@ -239,7 +239,10 @@ echo    ║                                                                     
 echo    ╚═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 echo.
 set /p t_c="   ╔═══[ BAKIMI BASLATMAK ISTIYOR MUSUNUZ? (E/H) ]═══> "
-if /i "%t_c%" NEQ "E" goto MENU
+if /i "%t_c%" NEQ "E" (
+    cls
+    goto MENU
+)
 
 cls
 echo [%date% %time%] ULTRA_BAKIM_MODU_BASLATILDI >> "%logFile%"
@@ -334,7 +337,6 @@ echo    ┌───────────────────────
 echo    │ [2/3] RAM onbellegi optimize ediliyor...                                                                              │
 echo    └─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 echo off | clip
-wmic process where name="explorer.exe" delete >nul 2>&1
 echo    [✓] RAM onbellegi optimize edildi
 
 echo    ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -631,8 +633,17 @@ if "%sonSecim%"=="1" (
 ) else if "%sonSecim%"=="4" (
     exit
 ) else (
+    cls
     goto MENU
 )
+
+:: BU SATIR ÇOK ÖNEMLİ - FONKSİYON SONUNDA MENUYE DÖN
+cls
+goto MENU
+
+:: -----------------------------------------------------------------------------
+:: DİĞER TÜM FONKSİYONLAR
+:: -----------------------------------------------------------------------------
 
 :LIST_DISK
 cls
@@ -648,9 +659,9 @@ call :HEADER_SUB "Akilli Format"
 (echo list disk) > "%TEMP%\ds.txt"
 diskpart /s "%TEMP%\ds.txt"
 del "%TEMP%\ds.txt"
-set /p d_id="   >> Disk Numarasi: "
-echo   [1] NTFS  [2] FAT32  [3] exFAT
-set /p fs_c="   >> Secim: "
+set /p d_id="   >> Disk Numarasi: "
+echo    [1] NTFS  [2] FAT32  [3] exFAT
+set /p fs_c="   >> Secim: "
 if "%fs_c%"=="1" set "fs=ntfs"
 if "%fs_c%"=="2" set "fs=fat32"
 if "%fs_c%"=="3" set "fs=exfat"
@@ -661,7 +672,7 @@ call :FOOTER_SUB "FORMAT"
 
 :PROTECT_DISK
 cls
-set /p d_id="   >> Disk No: "
+set /p d_id="   >> Disk No: "
 (echo select disk %d_id% & echo attributes disk set readonly) > "%TEMP%\ds.txt"
 diskpart /s "%TEMP%\ds.txt"
 del "%TEMP%\ds.txt"
@@ -669,7 +680,7 @@ call :FOOTER_SUB "WRITE_PROTECT_ON"
 
 :UNPROTECT_DISK
 cls
-set /p d_id="   >> Disk No: "
+set /p d_id="   >> Disk No: "
 (echo select disk %d_id% & echo attributes disk clear readonly) > "%TEMP%\ds.txt"
 diskpart /s "%TEMP%\ds.txt"
 del "%TEMP%\ds.txt"
@@ -677,7 +688,7 @@ call :FOOTER_SUB "WRITE_PROTECT_OFF"
 
 :DETAIL_DISK
 cls
-set /p d_id="   >> Disk No: "
+set /p d_id="   >> Disk No: "
 (echo select disk %d_id% & echo detail disk) > "%TEMP%\ds.txt"
 diskpart /s "%TEMP%\ds.txt"
 del "%TEMP%\ds.txt"
@@ -685,7 +696,7 @@ call :FOOTER_SUB "DISK_DETAIL"
 
 :CONVERT_NTFS
 cls
-set /p vol="   >> Harf (E gibi): "
+set /p vol="   >> Harf (E gibi): "
 convert %vol%: /fs:ntfs
 call :FOOTER_SUB "CONVERT_NTFS"
 
@@ -781,7 +792,7 @@ call :FOOTER_SUB "REPAIR_SFC"
 
 :REPAIR_CHKDSK
 cls
-set /p drv="   >> Disk Harfi: "
+set /p drv="   >> Disk Harfi: "
 chkdsk %drv%: /f /r /x
 call :FOOTER_SUB "REPAIR_CHKDSK"
 
@@ -820,7 +831,9 @@ call :FOOTER_SUB "CLEAR_SPOOLER"
 
 :RESET_ICON_CACHE
 cls
-taskkill /f /im explorer.exe & del /A %localappdata%\IconCache.db & start explorer.exe
+taskkill /f /im explorer.exe >nul 2>&1
+del /f /q "%localappdata%\IconCache.db" >nul 2>&1
+start explorer.exe >nul 2>&1
 call :FOOTER_SUB "RESET_ICON"
 
 :CLEAN_TEMP
@@ -831,22 +844,25 @@ call :FOOTER_SUB "CLEAN_TEMP"
 
 :OPTIMIZE_RAM
 cls
-ipconfig /flushdns & echo off | clip
+ipconfig /flushdns >nul
+echo off | clip
 call :FOOTER_SUB "OPTIMIZE_RAM"
 
 :DEL_WIN_OLD
 cls
-rd /s /q C:\Windows.old
+rd /s /q C:\Windows.old 2>nul
 call :FOOTER_SUB "DEL_WIN_OLD"
 
 :CLEAR_EVENTLOGS
 cls
-for /F "tokens=*" %%G in ('wevtutil.exe el') do (wevtutil.exe cl "%%G")
+for /F "tokens=*" %%G in ('wevtutil.exe el') do (
+    wevtutil.exe cl "%%G" >nul 2>&1
+)
 call :FOOTER_SUB "CLEAR_LOGS"
 
 :UPDATE_WINGET
 cls
-winget upgrade --all
+winget upgrade --all 2>nul
 call :FOOTER_SUB "UPDATE_WINGET"
 
 :RESET_HOSTS
@@ -856,12 +872,12 @@ call :FOOTER_SUB "RESET_HOSTS"
 
 :DISABLE_TELEMETRY
 cls
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" /v AllowTelemetry /t REG_DWORD /d 0 /f
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" /v AllowTelemetry /t REG_DWORD /d 0 /f >nul 2>&1
 call :FOOTER_SUB "DISABLE_TELEMETRY"
 
 :ULTRA_PERFORMANCE
 cls
-powercfg -duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61
+powercfg -duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61 >nul 2>&1
 call :FOOTER_SUB "ULTRA_PERF"
 
 :UPTIME
@@ -872,13 +888,14 @@ call :FOOTER_SUB "UPTIME"
 :NET_WIFI_PASS
 cls
 netsh wlan show profiles
-set /p wifi="   >> Wi-Fi Adi: "
+set /p wifi="   >> Wi-Fi Adi: "
 netsh wlan show profile name="%wifi%" key=clear
 call :FOOTER_SUB "WIFI_PASS"
 
 :NET_RESET_STACK
 cls
-netsh int ip reset & netsh winsock reset
+netsh int ip reset >nul 2>&1
+netsh winsock reset >nul 2>&1
 call :FOOTER_SUB "NET_RESET"
 
 :FIND_BAD_DRIVERS
@@ -893,7 +910,7 @@ call :FOOTER_SUB "PORT_LIST"
 
 :FIND_BIG_FILES
 cls
-echo   Lutfen bekleyin, C: surucusu taraniyor...
+echo    Lutfen bekleyin, C: surucusu taraniyor...
 forfiles /p C:\ /s /m *.* /c "cmd /c if @fsize geq 1073741824 echo @path @fsize" 2>nul
 call :FOOTER_SUB "BIG_FILES"
 
@@ -917,91 +934,166 @@ call :FOOTER_SUB "GODMODE"
 
 :ENABLE_OLD_PHOTO
 cls
-reg add "HKCR\Applications\vpshv.dll\shell\open\command" /ve /t REG_EXPAND_SZ /d "%%SystemRoot%%\System32\rundll32.exe \"%%ProgramFiles%%\Windows Photo Viewer\PhotoViewer.dll\", ImageView_Fullscreen %%1" /f
-assoc .jpg=PhotoViewer.FileAssoc.Tiff
-assoc .jpeg=PhotoViewer.FileAssoc.Tiff
-assoc .png=PhotoViewer.FileAssoc.Tiff
+reg add "HKCR\Applications\vpshv.dll\shell\open\command" /ve /t REG_EXPAND_SZ /d "%%SystemRoot%%\System32\rundll32.exe \"%%ProgramFiles%%\Windows Photo Viewer\PhotoViewer.dll\", ImageView_Fullscreen %%1" /f >nul 2>&1
+assoc .jpg=PhotoViewer.FileAssoc.Tiff >nul 2>&1
+assoc .jpeg=PhotoViewer.FileAssoc.Tiff >nul 2>&1
+assoc .png=PhotoViewer.FileAssoc.Tiff >nul 2>&1
 call :FOOTER_SUB "OLD_PHOTO"
 
 :KILL_NOT_RESPONDING
 cls
-taskkill /f /fi "status eq not responding"
+taskkill /f /fi "status eq not responding" >nul 2>&1
 call :FOOTER_SUB "KILL_PROCESS"
 
 :RESET_FIREWALL
 cls
-netsh advfirewall reset
+netsh advfirewall reset >nul 2>&1
 call :FOOTER_SUB "FIREWALL_RESET"
 
 :HOSTS_BACKUP
 cls
-copy %systemroot%\system32\drivers\etc\hosts "%USERPROFILE%\Desktop\hosts_yedek.txt"
+copy %systemroot%\system32\drivers\etc\hosts "%USERPROFILE%\Desktop\hosts_yedek.txt" >nul 2>&1
 call :FOOTER_SUB "HOSTS_BACKUP"
 
 :RESET_POWER_PLANS
 cls
-powercfg -restoredefaultschemes
+powercfg -restoredefaultschemes >nul 2>&1
 call :FOOTER_SUB "POWER_RESET"
 
 :: --- KISA YOLLAR VE DIREKT ARACLAR ---
 :CHANGE_LETTER
 :OPEN_DISKMGMT
-start diskmgmt.msc & goto MENU
+start diskmgmt.msc
+goto MENU
+
 :RESTART_EXPLORER
-taskkill /f /im explorer.exe & start explorer.exe & goto MENU
+taskkill /f /im explorer.exe >nul 2>&1
+timeout /t 2 /nobreak >nul
+start explorer.exe >nul 2>&1
+goto MENU
+
 :DISK_CLEANUP_TOOL
-start cleanmgr & goto MENU
+start cleanmgr
+goto MENU
+
 :CLEAR_CLIPBOARD
-echo off | clip & goto MENU
+echo off | clip
+goto MENU
+
 :UPDATE_STORE
-start ms-windows-store:updates & goto MENU
+start ms-windows-store:updates
+goto MENU
+
 :DISABLE_HIBERNATE
-powercfg -h off & goto MENU
+powercfg -h off >nul 2>&1
+goto MENU
+
 :TOGGLE_EXT
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v HideFileExt /t REG_DWORD /d 0 /f & taskkill /f /im explorer.exe & start explorer.exe & goto MENU
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v HideFileExt /t REG_DWORD /d 0 /f >nul 2>&1
+taskkill /f /im explorer.exe >nul 2>&1
+timeout /t 2 /nobreak >nul
+start explorer.exe >nul 2>&1
+goto MENU
+
 :TOGGLE_HIDDEN
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Hidden /t REG_DWORD /d 1 /f & taskkill /f /im explorer.exe & start explorer.exe & goto MENU
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Hidden /t REG_DWORD /d 1 /f >nul 2>&1
+taskkill /f /im explorer.exe >nul 2>&1
+timeout /t 2 /nobreak >nul
+start explorer.exe >nul 2>&1
+goto MENU
+
 :NET_FLUSHDNS
-ipconfig /flushdns & goto MENU
+ipconfig /flushdns >nul
+goto MENU
+
 :NET_IP_RENEW
-ipconfig /release & ipconfig /renew & goto MENU
+ipconfig /release >nul 2>&1
+ipconfig /renew >nul 2>&1
+goto MENU
+
 :NET_PING
-ping 8.8.8.8 & pause & goto MENU
+ping 8.8.8.8 -n 4
+pause
+goto MENU
+
 :NET_TRACERT
-set /p site="   >> Hedef: " & tracert %site% & pause & goto MENU
+set /p site="   >> Hedef: "
+tracert %site%
+pause
+goto MENU
+
 :NET_NETSTAT
-netstat -an & pause & goto MENU
+netstat -an
+pause
+goto MENU
+
 :NET_MAC
-getmac & pause & goto MENU
+getmac
+pause
+goto MENU
+
 :NET_ARP
-arp -a & pause & goto MENU
+arp -a
+pause
+goto MENU
+
 :NET_CHECK_CONN
-ping www.google.com -n 1 & pause & goto MENU
+ping www.google.com -n 2
+pause
+goto MENU
+
 :TOOL_DEV
-start devmgmt.msc & goto MENU
+start devmgmt.msc
+goto MENU
+
 :TOOL_CONTROL
-start control & goto MENU
+start control
+goto MENU
+
 :TOOL_TASK
-start taskmgr & goto MENU
+start taskmgr
+goto MENU
+
 :TOOL_SERVICE
-start services.msc & goto MENU
+start services.msc
+goto MENU
+
 :TOOL_REG
-start regedit & goto MENU
+start regedit
+goto MENU
+
 :TOOL_MSCONFIG
-start msconfig & goto MENU
+start msconfig
+goto MENU
+
 :TOOL_DXDIAG
-start dxdiag & goto MENU
+start dxdiag
+goto MENU
+
 :TOOL_OSK
-start osk & goto MENU
+start osk
+goto MENU
+
 :SEC_ADMIN_ON
-net user administrator /active:yes & call :FOOTER_SUB "ADMIN_ON"
+net user administrator /active:yes >nul 2>&1
+call :FOOTER_SUB "ADMIN_ON"
+
 :SEC_ADMIN_OFF
-net user administrator /active:no & call :FOOTER_SUB "ADMIN_OFF"
+net user administrator /active:no >nul 2>&1
+call :FOOTER_SUB "ADMIN_OFF"
+
 :SEC_FIREWALL
-start firewall.cpl & goto MENU
+start firewall.cpl
+goto MENU
+
 :SEC_LOCK
-rundll32.exe user32.dll,LockWorkStation & goto MENU
+rundll32.exe user32.dll,LockWorkStation
+goto MENU
+
 :POWER_SHUTDOWN_TIMER
-shutdown -s -t 3600 & goto MENU
+shutdown -s -t 3600
+goto MENU
+
 :POWER_ABORT
-shutdown -a & call :FOOTER_SUB "SHUTDOWN_ABORT"
+shutdown -a
+call :FOOTER_SUB "SHUTDOWN_ABORT"
