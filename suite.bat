@@ -1,199 +1,607 @@
 @echo off
 setlocal enabledelayedexpansion
 chcp 65001 >nul
-cd /d "%~dp0"
+
+:: --- LOG SİSTEMİ (GÜVENLİ YAPI) ---
+set "logFile=%TEMP%\UT_Ultimate_Final.txt"
+echo [%date% %time%] --- v9.6 FINAL SISTEM BASLATILDI --- >> "%logFile%" 2>nul
 
 :: --- YÖNETİCİ KONTROLÜ ---
 net session >nul 2>&1
 if %errorLevel% neq 0 (
-    echo [!] LUTFEN YONETICI OLARAK CALISTIRIN.
-    pause & exit
-)
-
-:: --- AYARLAR ---
-SET "VERSION=16.0"
-:: ÖNEMLİ: Linkin sonuna eklenen %RANDOM% önbelleği (cache) her seferinde kırar!
-SET "RAW_LINK=https://raw.githubusercontent.com/mediaconfig55-afk/it-support-suite/refs/heads/main/suite.bat"
-
-:: --- PROFESYONEL GÜNCELLEME SİSTEMİ ---
-echo [+] Guncellemeler kontrol ediliyor... (v%VERSION%)
-powershell -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; (New-Object Net.WebClient).DownloadFile('%RAW_LINK%', '%temp%\up.bat')" >nul 2>&1
-
-if exist "%temp%\up.bat" (
-    :: Mevcut dosya ile inen dosyayı karşılaştır (FC = File Compare)
-    fc /b "%~f0" "%temp%\up.bat" >nul
-    if %errorLevel% neq 0 (
-        echo.
-        echo  [+] YENI SURUM VEYA DEGISIKLIK BULUNDU!
-        echo  [+] Sistem guncelleniyor...
-        move /y "%temp%\up.bat" "%~f0" >nul
-        timeout /t 2 >nul
-        start "" "%~f0"
-        exit
-    )
-    del "%temp%\up.bat" >nul 2>&1
+    mode con: cols=85 lines=10
+    color 0C
+    echo.
+    echo    ┌──────────────────────────────────────────────────────────────────────────┐
+    echo    │                 HATA: YÖNETİCİ YETKİSİ GEREKLİ                           │
+    echo    ├──────────────────────────────────────────────────────────────────────────┤
+    echo    │ Lütfen bu dosyaya sağ tıklayıp "Yönetici Olarak Çalıştır"ı seçin.        │
+    echo    └──────────────────────────────────────────────────────────────────────────┘
+    pause >nul & exit
 )
 
 :: --- PENCERE AYARLARI ---
-mode con: cols=115 lines=48
-title IT Support Suite v%VERSION% - Code Emre Bilgin
 color 0B
+title USB TOOLS - ULTIMATE FINAL EDITION v9.6
+mode con: cols=155 lines=80
 
 :MENU
 cls
-echo.
-echo  ==========================================================================================================
-echo     USB YÖNETİM VE SİSTEM BAKIM KONSOLU (v%VERSION%) - CODE EMRE BİLGİN
-echo  ==========================================================================================================
-echo.
-echo    --- USB VE DISK ISLEMLERI ---                --- SISTEM BAKIM VE ONARIM ---
-echo    [1] Mevcut Diskleri Goruntule                [16] Sistem Dosyalarini Onar (SFC)
-echo    [2] Akilli Format (NTFS/FAT32/exFAT)         [17] Sabit Diski Tarama (CHKDSK)
-echo    [3] Yazma Korumasini ETKINLESTIR             [18] Disk Temizligi (Cleanmgr)
-echo    [4] Yazma Korumasini KALDIR                  [19] Grup Politikalarini Guncelle
-echo    [5] Disk ve Bolum Detaylarini Gor            [20] Windows Guncelleme Durumu
-echo.
-echo    --- SISTEM BILGILERI ---                     [21] Tum Programlari Guncelle (Winget)
-echo    [6] Seri No, Marka ve Model                  [22] Store Uygulamalarini Onar
-echo    [7] IP Adresini Goruntule                    [23] Gereksiz Dosyalari Temizle (Temp)
-echo    [8] Windows Lisans Durumu                    [24] RAM Optimizasyonu Yap
-echo    [9] Sistem Bilgileri (Detayli)               [25] Guvenlik Duvarini AC/KAPAT
-echo.
-echo    --- PRO TEKNISYEN ARACLARI ---               --- AG VE NETWORK ---
-echo    [36] Windows Update Servislerini SIFIRLA     [26] DNS Onbellegini Temizle
-echo    [37] Tum Suruculeri (Drivers) YEDEKLE        [34] WI-FI SIFRESINI GOSTER
-echo    [38] Guc Plani: NIHAI PERFORMANS             [41] Explorer/Gorev Cubugu ONAR
-echo    [40] Yazici Kuyrugunu TEMIZLE                [43] Pil Saglik Raporu (Laptop)
-echo  ==========================================================================================================
-echo    [35] CIKIS (EXIT)
-echo  ==========================================================================================================
-echo.
-set /p choice=" >> Seciminiz: "
+:: --- DİNAMİK VERİ TOPLAMA ---
+set "cpuLoad=N/A"
+for /f "skip=1" %%p in ('wmic cpu get loadpercentage 2^>nul') do (set cpuLoad=%%p & goto :next)
+:next
+for /f "tokens=2 delims==" %%a in ('wmic os get FreePhysicalMemory /value 2^>nul') do set freeRAM=%%a
+for /f "tokens=2 delims==" %%a in ('wmic os get TotalVisibleMemorySize /value 2^>nul') do set totalRAM=%%a
+set /a usedRAM=(%totalRAM%-%freeRAM%)/1024 >nul 2>&1
+set /a totalRAM_GB=%totalRAM%/1048576 >nul 2>&1
 
-:: (Buradan aşağısı v14 ile aynı, yönlendirmeler ve fonksiyonlar gelecek...)
-:: NOT: Kodu çok uzatmamak için yönlendirmeleri kopyalamadım, v14'tekileri buraya ekle.
+echo.
+echo.
+color 0B
+echo    ===========================================================================================================================
+echo    ║                                                                                                                         ║
+echo    ║   ██╗   ██╗███████╗██████╗     ████████╗ ██████╗  ██████╗ ██╗     ███████╗                                              ║
+echo    ║   ██║   ██║██╔════╝██╔══██╗    ╚══██╔══╝██╔═══██╗██╔═══██╗██║     ██╔════╝                                              ║
+echo    ║   ██║   ██║███████╗██████╔╝       ██║   ██║   ██║██║   ██║██║     ███████╗                                              ║
+echo    ║   ██║   ██║╚════██║██╔══██╗       ██║   ██║   ██║██║   ██║██║     ╚════██║                                              ║
+echo    ║   ╚██████╔╝███████║██████╔╝       ██║   ╚██████╔╝╚██████╔╝███████╗███████║                                              ║
+echo    ║    ╚═════╝ ╚══════╝╚═════╝        ╚═╝    ╚═════╝  ╚═════╝ ╚══════╝╚══════╝                                              ║
+echo    ║                                                                                                                         ║
+echo    ║                     USB YONETIM, SISTEM BAKIM VE ONARIM KONSOLU (v9.8)                                                  ║
+echo    ║   -------------------------------------------------------------------------------------------------------------------   ║
+echo    ║                          •••• CODE EMRE BILGIN - FINAL EDITION ••••                                                     ║
+echo    ║   -------------------------------------------------------------------------------------------------------------------   ║
+echo    ║                                 •••• CMD CONTROLLER 2026 © ••••                                                         ║
+echo    ║                                                                                                                         ║
+echo    ╚═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+echo    ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+echo      » [ STATUS ] CPU: %cpuLoad%%%  │  RAM: %usedRAM% MB / %totalRAM_GB% GB  │  LOG: ACTIVE  │  YEAR: 2026                     
+echo    └─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+echo.
+echo    [ DISK ^& USB YONETIMI ]           [ SISTEM ONARIM ^& BAKIM ]          [ AG ^& INTERNET AYARLARI ]        [ EKSTRA ARACLAR ^& GUVENLIK ]
+echo    ┌──────────────────────────────┐   ┌──────────────────────────────┐   ┌──────────────────────────────┐   ┌──────────────────────────────┐
+echo    │ [01] Diskleri Listele        │   │ [26] SFC Sistem Taramasi     │   │ [51] DNS Onbellegini Sil     │   │ [76] Hatali Suruculeri Bul   │
+echo    │ [02] Akilli Format           │   │ [27] CHKDSK Disk Denetimi    │   │ [52] IP Yenile (Renew)       │   │ [77] Port Dinleyici (PID)    │
+echo    │ [03] Yazma Korumasi AC       │   │ [28] DISM CheckHealth        │   │ [53] Google Ping Testi       │   │ [78] Buyuk Dosyalari Bul     │
+echo    │ [04] Yazma Korumasi KAPAT    │   │ [29] DISM ScanHealth         │   │ [54] Tracert Site Takibi     │   │ [79] Sürücü Sağlığı (SMART)  │
+echo    │ [05] Disk Detaylarini Gor    │   │ [30] DISM RestoreHealth      │   │ [55] Aktif Baglantilar       │   │ [80] Tarayici Cache Sil      │
+echo    │ [06] FAT32 -^> NTFS Cevir     │   │ [31] Windows Update Onar     │   │ [56] Wi-Fi Sifrelerini Gor   │   │ [81] GodMode Olustur         │
+echo    │ [07] Surucu Harfi Degistir   │   │ [32] Suruculeri Yedekle      │   │ [57] Ag Ayarlarini Sifirla   │   │ [82] Klasik Foto Goruntuleyici│
+echo    │ [08] Disk Yonetimini Ac      │   │ [33] Yazici Kuyruğunu Sil    │   │ [58] MAC Adresini Goster     │   │ [83] Yanit Vermeyenleri Kapat│
+echo    │ [09] USB Gecmisini Temizle   │   │ [34] Icon Cache Sifirla      │   │ [59] ARP Tablosunu Gor       │   │ [84] Firewall Sifirla        │
+echo    └──────────────────────────────┘   │ [35] Explorer Yeniden Baslat │   │ [60] Baglanti Kontrolu       │   │ [85] Hosts Yedekle           │
+echo                                       └──────────────────────────────┘   └──────────────────────────────┘   └──────────────────────────────┘
+echo    [ DONANIM BILGILERI ]              [ PERFORMANS ^& TEMIZLIK ]          [ HIZLI ERISIM ^& GUC ]             [ OTOMASYON MODU ]
+echo    ┌──────────────────────────────┐   ┌──────────────────────────────┐   ┌──────────────────────────────┐   ┌──────────────────────────────┐
+echo    │ [10] Seri No ^& Model         │   │ [36] Gecici Dosyalari Sil    │   │ [61] Aygit Yoneticisi        │   │                              │
+echo    │ [11] IP Adresini Gor         │   │ [37] RAM Optimizasyonu       │   │ [62] Denetim Masasi          │   │      [99] TURBO BAKIM        │
+echo    │ [12] Lisans Durumu           │   │ [38] Disk Temizleme (Clean)  │   │ [63] Gorev Yoneticisi        │   │                              │
+echo    │ [13] Detayli Sistem Bilgisi  │   │ [39] Windows.old Klasoru Sil │   │ [64] Hizmetler (Services)    │   └──────────────────────────────┘
+echo    │ [14] CPU Bilgisi             │   │ [40] Panoyu Temizle          │   │ [65] Kayit Defteri           │   │ [00] PROGRAMI KAPAT          │
+echo    │ [15] RAM Detaylari           │   │ [41] Olay Loglarini Sil      │   │ [66] MSConfig                │   └──────────────────────────────┘
+echo    │ [16] Anakart ^& BIOS Bilgisi  │   │ [42] Magaza Uyg. Guncelle    │   │ [67] DirectX Tanilama        │
+echo    │ [17] Ekran Karti (GPU)       │   │ [43] Winget Tumunu Guncelle  │   │ [68] Ekran Klavyesi          │
+echo    │ [18] Ses Suruculeri          │   │ [44] Hosts Dosyasi Sifirla   │   │ [69] Admin Hesabi AC         │
+echo    │ [19] Pil Raporu (Laptop)     │   │ [45] Telemetriyi Kapat       │   │ [70] Admin Hesabi KAPAT      │
+echo    │ [20] Son Format Tarihi       │   │ [46] Nihai Performans Modu   │   │ [71] Firewall Ayarlari       │
+echo    │ [21] Baslangic Uygulamalari  │   │ [47] Hibernate Kapat         │   │ [72] Sistemi Kilitle         │
+echo    │ [22] Kullanici Hesaplari     │   │ [48] Uzantilari Goster/Gizle │   │ [73] Oto Kapat (1 Saat)      │
+echo    │ [23] Depolama Alanlari       │   │ [49] Gizli Dosyalari Goster  │   │ [74] Kapatma Iptal           │
+echo    │ [24] BIOS Surum Detayi       │   │ [50] Sistem Calisma Suresi   │   │ [75] Guc Planini Sifirla     │
+echo    └──────────────────────────────┘   └──────────────────────────────┘   └──────────────────────────────┘
+echo.
+set /p choice="   ╔═══[ SECIMINIZI YAPIN (0-99) ]═══> "
 
-:: --- YÖNLENDİRMELER (EKSİKSİZ LİSTE) ---
-if "%choice%"=="1" goto LIST
-if "%choice%"=="2" goto FORMAT
-if "%choice%"=="3" goto PROTECT
-if "%choice%"=="4" goto UNPROTECT
-if "%choice%"=="5" goto DETAIL
-if "%choice%"=="6" goto COMP_INFO
-if "%choice%"=="7" goto IP
-if "%choice%"=="8" goto LICENSE
-if "%choice%"=="9" goto SYSINFO
-if "%choice%"=="16" goto SFC
-if "%choice%"=="17" goto CHKDSK
-if "%choice%"=="18" goto CLEANMGR
-if "%choice%"=="19" goto GPUPDATE
-if "%choice%"=="20" goto WU_STATUS
-if "%choice%"=="21" goto WINGET_UP
-if "%choice%"=="22" goto STORE_FIX
-if "%choice%"=="23" goto TEMP
-if "%choice%"=="24" goto RAM
-if "%choice%"=="25" goto FIREWALL
-if "%choice%"=="26" goto DNS
-if "%choice%"=="34" goto WIFI
-if "%choice%"=="36" goto WU_RESET
-if "%choice%"=="37" goto DRIVER
-if "%choice%"=="38" goto POWER
-if "%choice%"=="40" goto SPOOLER
-if "%choice%"=="41" goto EXPLORER
-if "%choice%"=="43" goto BATTERY
-if "%choice%"=="35" exit
+echo [%date% %time%] Kullanici Secimi: %choice% >> "%logFile%" 2>nul
+
+:: --- YÖNLENDİRME (IF) BLOKLARI ---
+if "%choice%"=="00" exit
+if "%choice%"=="1" goto LIST_DISK
+if "%choice%"=="2" goto SMART_FORMAT
+if "%choice%"=="3" goto PROTECT_DISK
+if "%choice%"=="4" goto UNPROTECT_DISK
+if "%choice%"=="5" goto DETAIL_DISK
+if "%choice%"=="6" goto CONVERT_NTFS
+if "%choice%"=="7" goto CHANGE_LETTER
+if "%choice%"=="8" goto OPEN_DISKMGMT
+if "%choice%"=="9" goto CLEAN_USB_REG
+if "%choice%"=="10" goto INFO_BASIC
+if "%choice%"=="11" goto INFO_IP
+if "%choice%"=="12" goto INFO_LICENSE
+if "%choice%"=="13" goto INFO_FULL
+if "%choice%"=="14" goto INFO_CPU
+if "%choice%"=="15" goto INFO_RAM
+if "%choice%"=="16" goto INFO_BIOS
+if "%choice%"=="17" goto INFO_GPU
+if "%choice%"=="18" goto INFO_AUDIO
+if "%choice%"=="19" goto REPORT_BATTERY
+if "%choice%"=="20" goto INFO_FORMATDATE
+if "%choice%"=="21" goto INFO_STARTUP
+if "%choice%"=="22" goto INFO_USERS
+if "%choice%"=="23" goto INFO_STORAGE
+if "%choice%"=="24" goto INFO_BIOS_DETAIL
+if "%choice%"=="26" goto REPAIR_SFC
+if "%choice%"=="27" goto REPAIR_CHKDSK
+if "%choice%"=="28" goto DISM_CHECK
+if "%choice%"=="29" goto DISM_SCAN
+if "%choice%"=="30" goto DISM_RESTORE
+if "%choice%"=="31" goto RESET_UPDATE
+if "%choice%"=="32" goto BACKUP_DRIVERS
+if "%choice%"=="33" goto CLEAR_SPOOLER
+if "%choice%"=="34" goto RESET_ICON_CACHE
+if "%choice%"=="35" goto RESTART_EXPLORER
+if "%choice%"=="36" goto CLEAN_TEMP
+if "%choice%"=="37" goto OPTIMIZE_RAM
+if "%choice%"=="38" goto DISK_CLEANUP_TOOL
+if "%choice%"=="39" goto DEL_WIN_OLD
+if "%choice%"=="40" goto CLEAR_CLIPBOARD
+if "%choice%"=="41" goto CLEAR_EVENTLOGS
+if "%choice%"=="42" goto UPDATE_STORE
+if "%choice%"=="43" goto UPDATE_WINGET
+if "%choice%"=="44" goto RESET_HOSTS
+if "%choice%"=="45" goto DISABLE_TELEMETRY
+if "%choice%"=="46" goto ULTRA_PERFORMANCE
+if "%choice%"=="47" goto DISABLE_HIBERNATE
+if "%choice%"=="48" goto TOGGLE_EXT
+if "%choice%"=="49" goto TOGGLE_HIDDEN
+if "%choice%"=="50" goto UPTIME
+if "%choice%"=="51" goto NET_FLUSHDNS
+if "%choice%"=="52" goto NET_IP_RENEW
+if "%choice%"=="53" goto NET_PING
+if "%choice%"=="54" goto NET_TRACERT
+if "%choice%"=="55" goto NET_NETSTAT
+if "%choice%"=="56" goto NET_WIFI_PASS
+if "%choice%"=="57" goto NET_RESET_STACK
+if "%choice%"=="58" goto NET_MAC
+if "%choice%"=="59" goto NET_ARP
+if "%choice%"=="60" goto NET_CHECK_CONN
+if "%choice%"=="61" goto TOOL_DEV
+if "%choice%"=="62" goto TOOL_CONTROL
+if "%choice%"=="63" goto TOOL_TASK
+if "%choice%"=="64" goto TOOL_SERVICE
+if "%choice%"=="65" goto TOOL_REG
+if "%choice%"=="66" goto TOOL_MSCONFIG
+if "%choice%"=="67" goto TOOL_DXDIAG
+if "%choice%"=="68" goto TOOL_OSK
+if "%choice%"=="69" goto SEC_ADMIN_ON
+if "%choice%"=="70" goto SEC_ADMIN_OFF
+if "%choice%"=="71" goto SEC_FIREWALL
+if "%choice%"=="72" goto SEC_LOCK
+if "%choice%"=="73" goto POWER_SHUTDOWN_TIMER
+if "%choice%"=="74" goto POWER_ABORT
+if "%choice%"=="75" goto RESET_POWER_PLANS
+if "%choice%"=="76" goto FIND_BAD_DRIVERS
+if "%choice%"=="77" goto PORT_LISTENER
+if "%choice%"=="78" goto FIND_BIG_FILES
+if "%choice%"=="79" goto DISK_SMART
+if "%choice%"=="80" goto CLEAN_BROWSER_CACHE
+if "%choice%"=="81" goto CREATE_GODMODE
+if "%choice%"=="82" goto ENABLE_OLD_PHOTO
+if "%choice%"=="83" goto KILL_NOT_RESPONDING
+if "%choice%"=="84" goto RESET_FIREWALL
+if "%choice%"=="85" goto HOSTS_BACKUP
+if "%choice%"=="99" goto SMART_MAINTENANCE
 goto MENU
 
-:: --- FONKSİYONLAR ---
+:: --- FONKSİYON GÖVDELERİ (EKSİKSİZ) ---
 
-:LIST
-cls & (echo list disk) > ds.txt & diskpart /s ds.txt & del ds.txt & pause & goto MENU
+:HEADER_SUB
+echo.
+echo    ┌────────────────────────────────────────────────────────┐
+echo    │ ISLEM: %~1
+echo    └────────────────────────────────────────────────────────┘
+echo.
+goto :eof
 
-:FORMAT
-cls & (echo list disk) > ds.txt & diskpart /s ds.txt & del ds.txt
-set /p d="Disk No: "
-set /p f="Format (ntfs/fat32/exfat): "
-(echo select disk %d% & echo clean & echo create partition primary & echo format fs=%f% quick & echo assign) > ds.txt
-diskpart /s ds.txt & del ds.txt & pause & goto MENU
+:FOOTER_SUB
+echo [%date% %time%] Islem Tamamlandi: %~1 >> "%logFile%" 2>nul
+echo.
+echo    [OK] Islem Tamamlandi. Menuye donmek icin bir tusa basin...
+pause >nul
+goto MENU
 
-:PROTECT
-cls & (echo select disk 0 & echo attributes disk set readonly) > ds.txt
-diskpart /s ds.txt & del ds.txt & echo [OK] Yazma Korumasi Acildi. & pause & goto MENU
+:SMART_MAINTENANCE
+cls
+echo.
+echo    ┌────────────────────────────────────────────────────────┐
+echo    │             [99] TURBO HIZLI BAKIM MODU                │
+echo    ├────────────────────────────────────────────────────────┤
+echo    │                                                        │
+echo    │  DIKKAT: Bu islem sistem dosyalarini tarayacak,        │
+echo    │  onbellekleri temizleyecek ve sistemi optimize         │
+echo    │  edecektir.                                            │
+echo    │                                                        │
+echo    │  Surenin uzunlugu sisteminize bagli olarak             │
+echo    │  [5-20 DAKIKA] arasinda surebilir.                     │
+echo    │                                                        │
+echo    └────────────────────────────────────────────────────────┘
+echo.
+set /p t_c="   >> Devam etmek istiyor musunuz? (E/H): "
+if /i "%t_c%" NEQ "E" goto MENU
+cls
+call :HEADER_SUB "TURBO BAKIM CALISIYOR"
+echo   [1/5] Temp ve DNS temizleniyor...
+del /s /f /q %temp%\*.* >nul 2>&1
+ipconfig /flushdns >nul
+echo   [2/5] RAM onbellegi bosaltiliyor...
+echo off | clip
+echo   [3/5] SISTEM TARAMASI (SFC) - Lutfen Bekleyin...
+sfc /scannow
+echo   [4/5] Gereksiz Loglar siliniyor...
+for /F "tokens=*" %%G in ('wevtutil.exe el') do (wevtutil.exe cl "%%G") >nul 2>&1
+echo   [5/5] Explorer yenileniyor...
+taskkill /f /im explorer.exe >nul 2>&1 & start explorer.exe >nul 2>&1
+call :FOOTER_SUB "TURBO_BAKIM"
 
-:UNPROTECT
-cls & (echo select disk 0 & echo attributes disk clear readonly) > ds.txt
-diskpart /s ds.txt & del ds.txt & echo [OK] Yazma Korumasi Kaldirildi. & pause & goto MENU
+:LIST_DISK
+cls
+call :HEADER_SUB "Diskleri Listele"
+(echo list disk) > "%TEMP%\ds.txt"
+diskpart /s "%TEMP%\ds.txt"
+del "%TEMP%\ds.txt"
+call :FOOTER_SUB "LIST_DISK"
 
-:DETAIL
-cls & set /p dID="Disk No: " & (echo select disk %dID% & echo detail disk) > ds.txt
-diskpart /s ds.txt & del ds.txt & pause & goto MENU
+:SMART_FORMAT
+cls
+call :HEADER_SUB "Akilli Format"
+(echo list disk) > "%TEMP%\ds.txt"
+diskpart /s "%TEMP%\ds.txt"
+del "%TEMP%\ds.txt"
+set /p d_id="   >> Disk Numarasi: "
+echo   [1] NTFS  [2] FAT32  [3] exFAT
+set /p fs_c="   >> Secim: "
+if "%fs_c%"=="1" set "fs=ntfs"
+if "%fs_c%"=="2" set "fs=fat32"
+if "%fs_c%"=="3" set "fs=exfat"
+(echo select disk %d_id% & echo clean & echo create partition primary & echo format fs=%fs% quick & echo assign) > "%TEMP%\ds.txt"
+diskpart /s "%TEMP%\ds.txt"
+del "%TEMP%\ds.txt"
+call :FOOTER_SUB "FORMAT"
 
-:COMP_INFO
-cls & wmic bios get serialnumber & wmic computersystem get manufacturer, model & pause & goto MENU
+:PROTECT_DISK
+cls
+set /p d_id="   >> Disk No: "
+(echo select disk %d_id% & echo attributes disk set readonly) > "%TEMP%\ds.txt"
+diskpart /s "%TEMP%\ds.txt"
+del "%TEMP%\ds.txt"
+call :FOOTER_SUB "WRITE_PROTECT_ON"
 
-:IP
-cls & ipconfig | findstr /i "IPv4" & pause & goto MENU
+:UNPROTECT_DISK
+cls
+set /p d_id="   >> Disk No: "
+(echo select disk %d_id% & echo attributes disk clear readonly) > "%TEMP%\ds.txt"
+diskpart /s "%TEMP%\ds.txt"
+del "%TEMP%\ds.txt"
+call :FOOTER_SUB "WRITE_PROTECT_OFF"
 
-:LICENSE
-cls & slmgr /xpr & pause & goto MENU
+:DETAIL_DISK
+cls
+set /p d_id="   >> Disk No: "
+(echo select disk %d_id% & echo detail disk) > "%TEMP%\ds.txt"
+diskpart /s "%TEMP%\ds.txt"
+del "%TEMP%\ds.txt"
+call :FOOTER_SUB "DISK_DETAIL"
 
-:SYSINFO
-cls & systeminfo & pause & goto MENU
+:CONVERT_NTFS
+cls
+set /p vol="   >> Harf (E gibi): "
+convert %vol%: /fs:ntfs
+call :FOOTER_SUB "CONVERT_NTFS"
 
-:SFC
-cls & sfc /scannow & pause & goto MENU
+:CLEAN_USB_REG
+cls
+call :HEADER_SUB "USB Gecmisini Sil"
+reg delete "HKLM\SYSTEM\CurrentControlSet\Enum\USBSTOR" /f >nul 2>&1
+reg delete "HKLM\SYSTEM\CurrentControlSet\Enum\USB" /f >nul 2>&1
+call :FOOTER_SUB "USB_REG_CLEAN"
 
-:CHKDSK
-cls & set /p drv="Harf: " & chkdsk %drv%: /f /r & pause & goto MENU
+:INFO_BASIC
+cls
+wmic bios get serialnumber
+wmic computersystem get manufacturer, model
+call :FOOTER_SUB "INFO_BASIC"
 
-:CLEANMGR
-cls & cleanmgr /sagerun:1 & pause & goto MENU
+:INFO_IP
+cls
+ipconfig | findstr "IPv4"
+call :FOOTER_SUB "INFO_IP"
 
-:GPUPDATE
-cls & gpupdate /force & pause & goto MENU
+:INFO_LICENSE
+cls
+slmgr /xpr
+call :FOOTER_SUB "INFO_LICENSE"
 
-:WU_STATUS
-cls & wmic qfe list brief /format:table & pause & goto MENU
+:INFO_FULL
+cls
+systeminfo
+call :FOOTER_SUB "INFO_FULL"
 
-:WINGET_UP
-cls & winget upgrade --all & pause & goto MENU
+:INFO_CPU
+cls
+wmic cpu get name
+call :FOOTER_SUB "INFO_CPU"
 
-:STORE_FIX
-cls & powershell -Command "Get-AppXPackage -AllUsers | Foreach {Add-AppxPackage -DisableDevelopmentMode -Register \"$($_.InstallLocation)\AppXManifest.xml\"}" & pause & goto MENU
+:INFO_RAM
+cls
+wmic memorychip get capacity, speed, manufacturer
+call :FOOTER_SUB "INFO_RAM"
 
-:TEMP
-cls & del /s /f /q %temp%\* & del /s /f /q C:\Windows\temp\* & pause & goto MENU
+:INFO_BIOS
+cls
+wmic baseboard get product, manufacturer
+call :FOOTER_SUB "INFO_BIOS"
 
-:RAM
-cls & start /wait rundll32.exe advapi32.dll,ProcessIdleTasks & echo FreeMem = Space(128000000) > "%temp%\r.vbs" & cscript //nologo "%temp%\r.vbs" & del "%temp%\r.vbs" & pause & goto MENU
+:INFO_GPU
+cls
+wmic path win32_VideoController get name
+call :FOOTER_SUB "INFO_GPU"
 
-:FIREWALL
-cls & echo [1] AC [2] KAPAT
-set /p fw="Secim: "
-if "%fw%"=="1" netsh advfirewall set allprofiles state on
-if "%fw%"=="2" netsh advfirewall set allprofiles state off
-pause & goto MENU
+:INFO_AUDIO
+cls
+wmic sounddev get caption
+call :FOOTER_SUB "INFO_AUDIO"
 
-:DNS
-cls & ipconfig /flushdns & pause & goto MENU
+:REPORT_BATTERY
+cls
+powercfg /batteryreport /output "%USERPROFILE%\Desktop\Pil_Raporu.html"
+echo [OK] Masaustune 'Pil_Raporu.html' olusturuldu.
+call :FOOTER_SUB "BATTERY_REPORT"
 
-:WIFI
-cls & set /p w="WiFi SSID: " & netsh wlan show profile name="%w%" key=clear | findstr /i "Key Content" & pause & goto MENU
+:INFO_FORMATDATE
+cls
+wmic os get installdate
+call :FOOTER_SUB "INFO_FORMAT_DATE"
 
-:WU_RESET
-cls & net stop wuauserv & net stop bits & ren C:\Windows\SoftwareDistribution SoftwareDistribution.old & net start wuauserv & net start bits & pause & goto MENU
+:INFO_STARTUP
+cls
+wmic startup get caption
+call :FOOTER_SUB "INFO_STARTUP"
 
-:DRIVER
-cls & mkdir "%USERPROFILE%\Desktop\Driver_Yedek" & dism /online /export-driver /destination:"%USERPROFILE%\Desktop\Driver_Yedek" & pause & goto MENU
+:INFO_USERS
+cls
+net user
+call :FOOTER_SUB "INFO_USERS"
 
-:POWER
-cls & powercfg -duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61 & pause & goto MENU
+:INFO_STORAGE
+cls
+wmic logicaldisk get caption, size, freespace
+call :FOOTER_SUB "INFO_STORAGE"
 
-:SPOOLER
-cls & net stop spooler & del /Q /F /S "%systemroot%\System32\Spool\Printers\*.*" & net start spooler & pause & goto MENU
+:INFO_BIOS_DETAIL
+cls
+call :HEADER_SUB "BIOS DETAYLARI"
+wmic bios get manufacturer, smbiosbiosversion, releasedate, serialnumber
+call :FOOTER_SUB "BIOS_DETAIL"
 
-:EXPLORER
+:REPAIR_SFC
+cls
+sfc /scannow
+call :FOOTER_SUB "REPAIR_SFC"
+
+:REPAIR_CHKDSK
+cls
+set /p drv="   >> Disk Harfi: "
+chkdsk %drv%: /f /r /x
+call :FOOTER_SUB "REPAIR_CHKDSK"
+
+:DISM_CHECK
+cls
+dism /online /cleanup-image /checkhealth
+call :FOOTER_SUB "DISM_CHECK"
+
+:DISM_SCAN
+cls
+dism /online /cleanup-image /scanhealth
+call :FOOTER_SUB "DISM_SCAN"
+
+:DISM_RESTORE
+cls
+dism /online /cleanup-image /restorehealth
+call :FOOTER_SUB "DISM_RESTORE"
+
+:RESET_UPDATE
+cls
+net stop wuauserv & net stop bits
+ren C:\Windows\SoftwareDistribution SoftwareDistribution.bak >nul 2>&1
+net start wuauserv & net start bits
+call :FOOTER_SUB "RESET_UPDATE"
+
+:BACKUP_DRIVERS
+cls
+mkdir "%USERPROFILE%\Desktop\UT_Drivers" >nul 2>&1
+dism /online /export-driver /destination:"%USERPROFILE%\Desktop\UT_Drivers"
+call :FOOTER_SUB "BACKUP_DRIVERS"
+
+:CLEAR_SPOOLER
+cls
+net stop spooler & del /Q /F /S "%systemroot%\System32\Spool\Printers\*.*" & net start spooler
+call :FOOTER_SUB "CLEAR_SPOOLER"
+
+:RESET_ICON_CACHE
+cls
+taskkill /f /im explorer.exe & del /A %localappdata%\IconCache.db & start explorer.exe
+call :FOOTER_SUB "RESET_ICON"
+
+:CLEAN_TEMP
+cls
+del /s /f /q %temp%\*.* >nul 2>&1
+del /s /f /q C:\Windows\Temp\*.* >nul 2>&1
+call :FOOTER_SUB "CLEAN_TEMP"
+
+:OPTIMIZE_RAM
+cls
+ipconfig /flushdns & echo off | clip
+call :FOOTER_SUB "OPTIMIZE_RAM"
+
+:DEL_WIN_OLD
+cls
+rd /s /q C:\Windows.old
+call :FOOTER_SUB "DEL_WIN_OLD"
+
+:CLEAR_EVENTLOGS
+cls
+for /F "tokens=*" %%G in ('wevtutil.exe el') do (wevtutil.exe cl "%%G")
+call :FOOTER_SUB "CLEAR_LOGS"
+
+:UPDATE_WINGET
+cls
+winget upgrade --all
+call :FOOTER_SUB "UPDATE_WINGET"
+
+:RESET_HOSTS
+cls
+echo 127.0.0.1 localhost > %systemroot%\system32\drivers\etc\hosts
+call :FOOTER_SUB "RESET_HOSTS"
+
+:DISABLE_TELEMETRY
+cls
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" /v AllowTelemetry /t REG_DWORD /d 0 /f
+call :FOOTER_SUB "DISABLE_TELEMETRY"
+
+:ULTRA_PERFORMANCE
+cls
+powercfg -duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61
+call :FOOTER_SUB "ULTRA_PERF"
+
+:UPTIME
+cls
+net stats srv | find "since"
+call :FOOTER_SUB "UPTIME"
+
+:NET_WIFI_PASS
+cls
+netsh wlan show profiles
+set /p wifi="   >> Wi-Fi Adi: "
+netsh wlan show profile name="%wifi%" key=clear
+call :FOOTER_SUB "WIFI_PASS"
+
+:NET_RESET_STACK
+cls
+netsh int ip reset & netsh winsock reset
+call :FOOTER_SUB "NET_RESET"
+
+:FIND_BAD_DRIVERS
+cls
+driverquery /si | findstr /v "Yes"
+call :FOOTER_SUB "BAD_DRIVERS"
+
+:PORT_LISTENER
+cls
+netstat -ano | findstr "LISTENING"
+call :FOOTER_SUB "PORT_LIST"
+
+:FIND_BIG_FILES
+cls
+echo   Lutfen bekleyin, C: surucusu taraniyor...
+forfiles /p C:\ /s /m *.* /c "cmd /c if @fsize geq 1073741824 echo @path @fsize" 2>nul
+call :FOOTER_SUB "BIG_FILES"
+
+:DISK_SMART
+cls
+wmic diskdrive get model, status
+call :FOOTER_SUB "DISK_SMART"
+
+:CLEAN_BROWSER_CACHE
+cls
+taskkill /f /im chrome.exe >nul 2>&1
+taskkill /f /im msedge.exe >nul 2>&1
+del /q /s /f "%LocalAppData%\Google\Chrome\User Data\Default\Cache\*.*" >nul 2>&1
+del /q /s /f "%LocalAppData%\Microsoft\Edge\User Data\Default\Cache\*.*" >nul 2>&1
+call :FOOTER_SUB "BROWSER_CLEAN"
+
+:CREATE_GODMODE
+cls
+mkdir "%USERPROFILE%\Desktop\GodMode.{ED7BA470-8E54-465E-825C-99712043E01C}" 2>nul
+call :FOOTER_SUB "GODMODE"
+
+:ENABLE_OLD_PHOTO
+cls
+reg add "HKCR\Applications\vpshv.dll\shell\open\command" /ve /t REG_EXPAND_SZ /d "%%SystemRoot%%\System32\rundll32.exe \"%%ProgramFiles%%\Windows Photo Viewer\PhotoViewer.dll\", ImageView_Fullscreen %%1" /f
+assoc .jpg=PhotoViewer.FileAssoc.Tiff
+assoc .jpeg=PhotoViewer.FileAssoc.Tiff
+assoc .png=PhotoViewer.FileAssoc.Tiff
+call :FOOTER_SUB "OLD_PHOTO"
+
+:KILL_NOT_RESPONDING
+cls
+taskkill /f /fi "status eq not responding"
+call :FOOTER_SUB "KILL_PROCESS"
+
+:RESET_FIREWALL
+cls
+netsh advfirewall reset
+call :FOOTER_SUB "FIREWALL_RESET"
+
+:HOSTS_BACKUP
+cls
+copy %systemroot%\system32\drivers\etc\hosts "%USERPROFILE%\Desktop\hosts_yedek.txt"
+call :FOOTER_SUB "HOSTS_BACKUP"
+
+:RESET_POWER_PLANS
+cls
+powercfg -restoredefaultschemes
+call :FOOTER_SUB "POWER_RESET"
+
+:: --- KISA YOLLAR VE DIREKT ARACLAR ---
+:CHANGE_LETTER
+:OPEN_DISKMGMT
+start diskmgmt.msc & goto MENU
+:RESTART_EXPLORER
 taskkill /f /im explorer.exe & start explorer.exe & goto MENU
-
-:BATTERY
-cls & powercfg /batteryreport /output "%USERPROFILE%\Desktop\pil_raporu.html" & echo [OK] Masaustune bakin. & pause & goto MENU
+:DISK_CLEANUP_TOOL
+start cleanmgr & goto MENU
+:CLEAR_CLIPBOARD
+echo off | clip & goto MENU
+:UPDATE_STORE
+start ms-windows-store:updates & goto MENU
+:DISABLE_HIBERNATE
+powercfg -h off & goto MENU
+:TOGGLE_EXT
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v HideFileExt /t REG_DWORD /d 0 /f & taskkill /f /im explorer.exe & start explorer.exe & goto MENU
+:TOGGLE_HIDDEN
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Hidden /t REG_DWORD /d 1 /f & taskkill /f /im explorer.exe & start explorer.exe & goto MENU
+:NET_FLUSHDNS
+ipconfig /flushdns & goto MENU
+:NET_IP_RENEW
+ipconfig /release & ipconfig /renew & goto MENU
+:NET_PING
+ping 8.8.8.8 & pause & goto MENU
+:NET_TRACERT
+set /p site="   >> Hedef: " & tracert %site% & pause & goto MENU
+:NET_NETSTAT
+netstat -an & pause & goto MENU
+:NET_MAC
+getmac & pause & goto MENU
+:NET_ARP
+arp -a & pause & goto MENU
+:NET_CHECK_CONN
+ping www.google.com -n 1 & pause & goto MENU
+:TOOL_DEV
+start devmgmt.msc & goto MENU
+:TOOL_CONTROL
+start control & goto MENU
+:TOOL_TASK
+start taskmgr & goto MENU
+:TOOL_SERVICE
+start services.msc & goto MENU
+:TOOL_REG
+start regedit & goto MENU
+:TOOL_MSCONFIG
+start msconfig & goto MENU
+:TOOL_DXDIAG
+start dxdiag & goto MENU
+:TOOL_OSK
+start osk & goto MENU
+:SEC_ADMIN_ON
+net user administrator /active:yes & call :FOOTER_SUB "ADMIN_ON"
+:SEC_ADMIN_OFF
+net user administrator /active:no & call :FOOTER_SUB "ADMIN_OFF"
+:SEC_FIREWALL
+start firewall.cpl & goto MENU
+:SEC_LOCK
+rundll32.exe user32.dll,LockWorkStation & goto MENU
+:POWER_SHUTDOWN_TIMER
+shutdown -s -t 3600 & goto MENU
+:POWER_ABORT
+shutdown -a & call :FOOTER_SUB "SHUTDOWN_ABORT"
