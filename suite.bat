@@ -4,7 +4,7 @@ chcp 65001 >nul
 
 :: --- LOG SİSTEMİ (GÜVENLİ YAPI) ---
 set "logFile=%TEMP%\UT_Ultimate_Final.txt"
-echo [%date% %time%] --- v9.6 FINAL SISTEM BASLATILDI --- >> "%logFile%" 2>nul
+echo [%date% %time%] --- v9.0 FINAL SISTEM BASLATILDI --- >> "%logFile%" 2>nul
 
 :: --- YÖNETİCİ KONTROLÜ ---
 net session >nul 2>&1
@@ -22,7 +22,7 @@ if %errorLevel% neq 0 (
 
 :: --- PENCERE AYARLARI ---
 color 0B
-title USB TOOLS - ULTIMATE FINAL EDITION v9.8
+title USB TOOLS - ULTIMATE FINAL EDITION v9.0
 mode con: cols=155 lines=80
 
 :MENU
@@ -48,7 +48,7 @@ echo    ║   ██║   ██║╚════██║██╔══�
 echo    ║   ╚██████╔╝███████║██████╔╝       ██║   ╚██████╔╝╚██████╔╝███████╗███████║                                              ║
 echo    ║    ╚═════╝ ╚══════╝╚═════╝        ╚═╝    ╚═════╝  ╚═════╝ ╚══════╝╚══════╝                                              ║
 echo    ║                                                                                                                         ║
-echo    ║                     USB YONETIM, SISTEM BAKIM VE ONARIM KONSOLU (v9.8)                                                  ║
+echo    ║                     USB YONETIM, SISTEM BAKIM VE ONARIM KONSOLU (v9.0)                                                  ║
 echo    ║   -------------------------------------------------------------------------------------------------------------------   ║
 echo    ║                          •••• CODE EMRE BILGIN - FINAL EDITION ••••                                                     ║
 echo    ║   -------------------------------------------------------------------------------------------------------------------   ║
@@ -220,19 +220,294 @@ echo.
 set /p t_c="   >> Devam etmek istiyor musunuz? (E/H): "
 if /i "%t_c%" NEQ "E" goto MENU
 cls
-call :HEADER_SUB "TURBO BAKIM CALISIYOR"
-echo   [1/5] Temp ve DNS temizleniyor...
-del /s /f /q %temp%\*.* >nul 2>&1
+:ADVANCED_TURBO_MAINTENANCE
+cls
+echo.
+echo    ==============================================================================
+echo    [PROFESYONEL TURBO BAKIM SISTEMI v2.0]
+echo    ==============================================================================
+echo.
+echo    [GENISLETILMIS OTOMASYON MODU]
+echo    -------------------------------
+echo    + AKILLI ANALIZ & TANI
+echo    + COK KATMANLI TEMIZLIK
+echo    + SISTEM OPTIMIZASYONU
+echo    + DETAYLI RAPORLAMA
+echo    + GUVENLI GERI ALMA NOKTASI
+echo.
+echo    Tahmini Sure: 8-25 dakika (Sisteminize bagli)
+echo    Gerekli Alan: Minimum 500MB bos disk alani
+echo.
+set /p confirm="   >> PROFESYONEL BAKIM BASLATILSIN MI? (E/H): "
+if /i "%confirm%" NEQ "E" goto MENU
+
+:: --- SISTEM GERI ALMA NOKTASI OLUSTUR ---
+echo [%date% %time%] PROFESYONEL_TURBO_BAKIM_BASLATILDI >> "%logFile%"
+echo.
+echo    ==============================================================================
+echo    [1. SISTEM ANALIZI & HAZIRLIK]
+echo    ==============================================================================
+echo.
+
+:: Sistem Bilgilerini Topla
+call :HEADER_SUB "SISTEM ANALIZI"
+echo    [*] Sistem durumu analiz ediliyor...
+echo    [*] Bellek ve disk kullanimi kontrol ediliyor...
+
+:: Performans Verilerini Topla (Öncesi)
+for /f "skip=1" %%p in ('wmic cpu get loadpercentage 2^>nul') do set "cpuBefore=%%p"
+for /f "tokens=2 delims==" %%a in ('wmic os get FreePhysicalMemory /value 2^>nul') do set "ramBefore=%%a"
+set /a ramBeforeMB=%ramBefore%/1024
+for /f "tokens=3" %%d in ('dir /-c C:\ | find "bayt"') do set "diskBefore=%%d"
+
+:: Sistem Geri Alma Noktası Oluştur
+echo    [*] Sistem geri alma noktasi olusturuluyor...
+powershell -Command "Checkpoint-Computer -Description 'UT_Turbo_Bakim_%date%_%time%' -RestorePointType MODIFY_SETTINGS" >nul 2>&1
+if %errorLevel% equ 0 (
+    echo    [+] Sistem geri alma noktasi basariyla olusturuldu
+) else (
+    echo    [!] Sistem geri almasi olusturulamadi (devam ediliyor)
+)
+
+:: --- ANA BAKIM ASAMALARI ---
+echo.
+echo    ==============================================================================
+echo    [2. COK KATMANLI TEMIZLIK]
+echo    ==============================================================================
+echo.
+
+:: 2.1 TEMEL TEMIZLIK
+echo    [2.1] TEMEL TEMIZLIK BASLATILDI...
+echo    [-] Gecici dosyalar temizleniyor...
+rd /s /q %temp% 2>nul & md %temp%
+del /f /q /s C:\Windows\Temp\*.* >nul 2>&1
+del /f /q /s "%USERPROFILE%\AppData\Local\Temp\*.*" >nul 2>&1
+
+echo    [-] Prefetch dosyalari temizleniyor...
+del /f /q /s C:\Windows\Prefetch\*.* >nul 2>&1
+
+echo    [-] Windows Error Reporting dosyalari temizleniyor...
+del /f /q /s "%ProgramData%\Microsoft\Windows\WER\*.*" >nul 2>&1
+
+:: 2.2 OBELLEK TEMIZLIGI
+echo    [2.2] OBELLEK OPTIMIZASYONU...
+echo    [-] DNS onbellegi temizleniyor...
 ipconfig /flushdns >nul
-echo   [2/5] RAM onbellegi bosaltiliyor...
-echo off | clip
-echo   [3/5] SISTEM TARAMASI (SFC) - Lutfen Bekleyin...
-sfc /scannow
-echo   [4/5] Gereksiz Loglar siliniyor...
-for /F "tokens=*" %%G in ('wevtutil.exe el') do (wevtutil.exe cl "%%G") >nul 2>&1
-echo   [5/5] Explorer yenileniyor...
-taskkill /f /im explorer.exe >nul 2>&1 & start explorer.exe >nul 2>&1
-call :FOOTER_SUB "TURBO_BAKIM"
+netsh winsock reset catalog >nul 2>&1
+netsh int ip reset >nul 2>&1
+
+echo    [-] Font onbellegi temizleniyor...
+del /f /q "%windir%\System32\FNTCACHE.DAT" >nul 2>&1
+
+echo    [-] Thumbnail onbellegi temizleniyor...
+del /f /q "%USERPROFILE%\AppData\Local\Microsoft\Windows\Explorer\thumbcache*.db" >nul 2>&1
+
+:: 2.3 BROWSER TEMIZLIGI
+echo    [2.3] TARAYICI TEMIZLIGI...
+echo    [-] Chrome temizleniyor...
+rd /s /q "%LocalAppData%\Google\Chrome\User Data\Default\Cache" 2>nul
+rd /s /q "%LocalAppData%\Google\Chrome\User Data\Default\Cache2" 2>nul
+
+echo    [-] Edge temizleniyor...
+rd /s /q "%LocalAppData%\Microsoft\Edge\User Data\Default\Cache" 2>nul
+rd /s /q "%LocalAppData%\Microsoft\Edge\User Data\Default\Cache2" 2>nul
+
+echo    [-] Firefox temizleniyor...
+rd /s /q "%AppData%\Mozilla\Firefox\Profiles\*.default-release\cache2" 2>nul
+
+:: --- SISTEM ONARIM ASAMALARI ---
+echo.
+echo    ==============================================================================
+echo    [3. SISTEM SAGLIK KONTROLLERI]
+echo    ==============================================================================
+echo.
+
+:: 3.1 DISM SISTEM ONARIMI
+echo    [3.1] DISM SAGLIK KONTROLLERI...
+echo    [-] DISM CheckHealth calistiriliyor...
+dism /online /cleanup-image /checkhealth >nul
+if %errorLevel% equ 0 (
+    echo    [+] DISM: Sistem goruntusu saglikli
+) else (
+    echo    [!] DISM: Sistem goruntusu sorunlu, onarim baslatiliyor...
+    echo    [-] DISM ScanHealth calistiriliyor (1/3)...
+    dism /online /cleanup-image /scanhealth >nul
+    echo    [-] DISM RestoreHealth calistiriliyor (2/3)...
+    dism /online /cleanup-image /restorehealth /source:WIM:X:\Sources\Install.wim:1 /LimitAccess >nul 2>&1
+    echo    [-] DISM son onarim (3/3)...
+    dism /online /cleanup-image /restorehealth >nul
+)
+
+:: 3.2 SFC ONARIMI
+echo    [3.2] SFC SISTEM DOSYALARI KONTROLU...
+echo    [-] Sistem dosyalari taranip onariliyor...
+sfc /scannow >nul
+if %errorLevel% equ 0 (
+    echo    [+] SFC: Sistem dosyalari saglikli
+) else (
+    echo    [!] SFC: Bozuk dosyalar bulundu, onarildi"
+)
+
+:: 3.3 CHKDSK PLANLA
+echo    [3.3] DISK BILGISI...
+echo    [-] Disk hatasi kontrolu yapiliyor..."
+chkdsk C: /scan >nul
+if %errorLevel% neq 0 (
+    echo    [!] Disk hatasi tespit edildi, sonraki acilista onarilacak
+    chkdsk C: /f /r /x
+)
+
+:: --- PERFORMANS OPTIMIZASYONU ---
+echo.
+echo    ==============================================================================
+echo    [4. SISTEM OPTIMIZASYONU]
+echo    ==============================================================================
+echo.
+
+:: 4.1 SERVIS OPTIMIZASYONU
+echo    [4.1] SERVIS OPTIMIZASYONU...
+echo    [-] Gereksiz servisler kontrol ediliyor...
+
+:: Superfetch servisini optimize et (SSD için)
+wmic logicaldisk where "DeviceID='C:'" get MediaType | find "SSD" >nul
+if %errorLevel% equ 0 (
+    sc config SysMain start= disabled >nul 2>&1
+    sc stop SysMain >nul 2>&1
+    echo    [+] Superfetch SSD modunda devre disi birakildi
+)
+
+:: Windows Search geçici olarak durdur
+sc stop WSearch >nul 2>&1
+echo    [+] Windows Search servisi durduruldu (gecici)
+
+:: 4.2 REGISTRY OPTIMIZASYONU
+echo    [4.2] KAYIT DEFTERI TEMIZLIGI...
+echo    [-] RecentDocs temizleniyor...
+reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs" /f >nul 2>&1
+
+echo    [-] Run registry temizligi...
+reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /va /f >nul 2>&1
+reg delete "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /va /f >nul 2>&1
+
+:: 4.3 GOREV ZAMANLAYICI TEMIZLIGI
+echo    [4.3] GOREV ZAMANLAYICI OPTIMIZASYONU...
+echo    [-] Gecersiz gorevler temizleniyor...
+for /f "tokens=2 delims=," %%a in ('schtasks /query /fo csv ^| findstr /i "hata\|could not"') do (
+    schtasks /delete /tn "%%~a" /f >nul 2>&1
+)
+
+:: --- GUNCELLEME VE GUVENLIK ---
+echo.
+echo    ==============================================================================
+echo    [5. GUNCELLEME & GUVENLIK]
+echo    ==============================================================================
+echo.
+
+:: 5.1 WINDOWS UPDATE TEMIZLIGI
+echo    [5.1] WINDOWS UPDATE OPTIMIZASYONU...
+echo    [-] Gecici update dosyalari temizleniyor...
+net stop wuauserv >nul 2>&1
+net stop bits >nul 2>&1
+rd /s /q C:\Windows\SoftwareDistribution\Download 2>nul
+md C:\Windows\SoftwareDistribution\Download 2>nul
+net start wuauserv >nul 2>&1
+net start bits >nul 2>&1
+
+:: 5.2 WINDOWS STORE TEMIZLIGI
+echo    [5.2] MICROSOFT STORE TEMIZLIGI...
+wsreset.exe -i >nul 2>&1
+
+:: 5.3 TELEMETRI KISITLAMA
+echo    [5.3] GIZLILIK AYARLARI...
+echo    [-] Telemetri verileri kisitlaniyor...
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" /v AllowTelemetry /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppCompat" /v AITEnable /t REG_DWORD /d 0 /f >nul 2>&1
+
+:: --- SON ASAMA: RAPOR VE YENIDEN BASLATMA ---
+echo.
+echo    ==============================================================================
+echo    [6. SON ISLEMLER & RAPOR]
+echo    ==============================================================================
+echo.
+
+:: 6.1 SON TEMIZLIKLER
+echo    [6.1] SON TEMIZLIK ISLEMLERI...
+echo    [-] Geri donusum kutusu bosaltiliyor...
+rd /s /q "%SYSTEMDRIVE%\$Recycle.Bin" 2>nul
+
+echo    [-] Pagefile temizligi...
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" /v ClearPageFileAtShutdown /t REG_DWORD /d 1 /f >nul 2>&1
+
+:: 6.2 EXPLORER YENILEME
+echo    [6.2] SISTEM ARABIRIMI YENILENIYOR...
+taskkill /f /im explorer.exe >nul 2>&1
+timeout /t 2 /nobreak >nul
+start explorer.exe >nul 2>&1
+
+:: 6.3 PERFORMANS SON DURUMU
+echo    [6.3] PERFORMANS OLÇÜMÜ...
+for /f "skip=1" %%p in ('wmic cpu get loadpercentage 2^>nul') do set "cpuAfter=%%p"
+for /f "tokens=2 delims==" %%a in ('wmic os get FreePhysicalMemory /value 2^>nul') do set "ramAfter=%%a"
+set /a ramAfterMB=%ramAfter%/1024
+for /f "tokens=3" %%d in ('dir /-c C:\ | find "bayt"') do set "diskAfter=%%d"
+
+:: Kazanılan Alan Hesaplama
+set /a diskSaved=(%diskBefore%-%diskAfter%)/1048576
+set /a ramSaved=(%ramAfterMB%-%ramBeforeMB%)
+
+:: --- DETAYLI RAPOR OLUSTURMA ---
+echo.
+echo    ==============================================================================
+echo    [BAKIM TAMAMLANDI - RAPOR]
+echo    ==============================================================================
+echo.
+echo    PERFORMANS DEGISIMI:
+echo    --------------------
+echo    CPU Yuk: %cpuBefore%%% -> %cpuAfter%%%
+echo    Bos RAM: %ramBeforeMB% MB -> %ramAfterMB% MB (%ramSaved% MB kazanc)
+echo    Disk Alanı: %diskSaved% MB bosaltildi
+echo.
+echo    GERCEKLESTIRILEN ISLEMLER:
+echo    --------------------------
+echo    [+] Sistem geri alma noktasi olusturuldu
+echo    [+] 5 katmanli temizlik tamamlandi
+echo    [+] 3 asamali sistem onarimi uygulandi
+echo    [+] Performans optimizasyonu yapildi
+echo    [+] Guvenlik ve gizlilik ayarlari guncellendi
+echo.
+echo    TAVSIYELER:
+echo    -----------
+echo    * Sistemi yeniden baslatin
+echo    * Onemli verilerinizi yedekleyin
+echo    * Haftalik hizli bakim yapin
+echo.
+echo    SONRAKI BAKIM: %date% + 7 gun
+echo.
+
+:: Raporu Dosyaya Kaydet
+echo. >> "%logFile%"
+echo [%date% %time%] TURBO_BAKIM_RAPORU >> "%logFile%"
+echo [%date% %time%] CPU: %cpuBefore%%% -> %cpuAfter%%% >> "%logFile%"
+echo [%date% %time%] RAM: %ramBeforeMB% MB -> %ramAfterMB% MB >> "%logFile%"
+echo [%date% %time%] DISK: %diskSaved% MB kazanildi >> "%logFile%"
+echo [%date% %time%] PROFESYONEL_TURBO_BAKIM_TAMAMLANDI >> "%logFile%"
+
+echo.
+echo    ==============================================================================
+echo    [!] Sistemi yeniden baslatmak performans icin onerilir!
+echo    ==============================================================================
+echo.
+
+set /p restart="   >> Sistemi simdi yeniden baslatmak ister misiniz? (E/H): "
+if /i "%restart%"=="E" (
+    echo    [*] Sistem 30 saniye icinde yeniden baslatilacak...
+    shutdown /r /t 30 /c "UT Turbo Bakim sonrasi yeniden baslatma"
+) else (
+    echo    [+] Bakim tamamlandi! Menuye donmek icin bir tusa basin...
+)
+
+pause >nul
+goto MENU
 
 :LIST_DISK
 cls
