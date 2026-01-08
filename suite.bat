@@ -4,7 +4,7 @@ chcp 65001 >nul
 
 :: --- LOG SİSTEMİ (GÜVENLİ YAPI) ---
 set "logFile=%TEMP%\UT_Ultimate_Final.txt"
-echo [%date% %time%] --- v9.6 FINAL SISTEM BASLATILDI --- >> "%logFile%" 2>nul
+echo [%date% %time%] --- v10 FINAL SISTEM BASLATILDI --- >> "%logFile%" 2>nul
 
 :: --- YÖNETİCİ KONTROLÜ ---
 net session >nul 2>&1
@@ -22,7 +22,7 @@ if %errorLevel% neq 0 (
 
 :: --- PENCERE AYARLARI ---
 color 0B
-title USB TOOLS - ULTIMATE FINAL EDITION v9.6
+title USB TOOLS - ULTIMATE FINAL EDITION v10
 mode con: cols=155 lines=80
 
 :MENU
@@ -48,7 +48,7 @@ echo    ║   ██║   ██║╚════██║██╔══██
 echo    ║   ╚██████╔╝███████║██████╔╝       ██║   ╚██████╔╝╚██████╔╝███████╗███████║                                            ║
 echo    ║    ╚═════╝ ╚══════╝╚═════╝        ╚═╝    ╚═════╝  ╚═════╝ ╚══════╝╚══════╝                                            ║
 echo    ║                                                                                                                        ║
-echo    ║                 USB YONETIM, SISTEM BAKIM VE ONARIM KONSOLU (v9.6)                                                     ║
+echo    ║                 USB YONETIM, SISTEM BAKIM VE ONARIM KONSOLU (v10)                                                     ║
 echo    ║   -------------------------------------------------------------------------------------------------------------------   ║
 echo    ║                          •••• CODE EMRE BILGIN - FINAL EDITION ••••                                                     ║
 echo    ║   -------------------------------------------------------------------------------------------------------------------   ║
